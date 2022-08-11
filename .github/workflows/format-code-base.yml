@@ -17,7 +17,7 @@ jobs:
       - name: 💄 Run Prettier
         uses: creyD/prettier_action@v4.2
         with:
-          prettier_options: --write **/*.{js,md}
+          prettier_options: --write **/*.{js,md,yml}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -25,15 +25,17 @@ jobs:
         uses: rickstaa/action-black@v1
         id: action_black
         with:
-          black_args: ". --verbose --diff --color"
+          black_args: "."
 
       - name: 🪢 Create Pull Request
         if: steps.action_black.outputs.is_formatted == 'true'
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          title: "Format Python code with psf/black push"
-          commit-message: "fix(code): :art: Format Python code with psf/black"
+          title: "🎨 Format Python code with psf/black push"
+          author: HarryVasanth <mailsuthan@gmail.com>
+          committer: HarryVasanth <mailsuthan@gmail.com>
+          commit-message: "chore(code): Format Python code with psf/black"
           body: |
             There appear to be some python formatting errors in ${{ github.sha }}. This pull request
             uses the [psf/black](https://github.com/psf/black) formatter to fix these issues.
