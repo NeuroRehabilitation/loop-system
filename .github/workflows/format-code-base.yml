@@ -2,9 +2,9 @@ name: Format Code Base
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   format-code-base:
@@ -20,13 +20,13 @@ jobs:
           prettier_options: --write **/*.{js,md}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          
+
       - name: 💋 Check files using the Black Formatter
         uses: rickstaa/action-black@v1
         id: action_black
         with:
           black_args: ". --verbose --diff --color"
-          
+
       - name: 🪢 Create Pull Request
         if: steps.action_black.outputs.is_formatted == 'true'
         uses: peter-evans/create-pull-request@v3
