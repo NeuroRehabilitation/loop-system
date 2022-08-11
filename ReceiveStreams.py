@@ -1,10 +1,15 @@
 from Stream import *
 
-class ReceiveStreams(multiprocessing.Process):
 
+class ReceiveStreams(multiprocessing.Process):
     def __init__(self):
         super().__init__()
-        self.stream_processes, self.stream_names, self.streams_inlet, self.streams_info = [], [], [], []
+        (
+            self.stream_processes,
+            self.stream_names,
+            self.streams_inlet,
+            self.streams_info,
+        ) = ([], [], [], [])
         self.n_processes = 0
         self.receiver_queue = multiprocessing.Queue()
         self.sender_queue = multiprocessing.Queue()
@@ -18,7 +23,7 @@ class ReceiveStreams(multiprocessing.Process):
 
         return self.stream_names
 
-    def startProcess(self,name):
+    def startProcess(self, name):
 
         stream = Streams(name)
         inlet = stream.getInlet()
@@ -33,11 +38,10 @@ class ReceiveStreams(multiprocessing.Process):
         while not process.data_queue.empty():
             self.receiver_queue.put(process.data_queue.get())
 
-    def stopProcess(self,process) -> None:
+    def stopProcess(self, process) -> None:
         process.join()
         print("Process {} finished.".format(process.name))
         self.n_processes -= 1
-
 
     def run(self) -> None:
 
@@ -59,10 +63,11 @@ class ReceiveStreams(multiprocessing.Process):
                 if not self.receiver_queue.empty():
                     data = self.receiver_queue.get()
                     samples, timestamps = data
-                    data_chunk = [samples,timestamps]
+                    data_chunk = [samples, timestamps]
                     if len(data_chunk[0]) > 0 and len(data_chunk[1]) > 0:
                         self.sender_queue.put(data_chunk)
                         # print(self.sender_queue.qsize())
+
 
 # if __name__ == "__main__":
 #     receiver = ReceiveStreams()

@@ -5,8 +5,8 @@ import multiprocessing
 import numpy as np
 import time
 
-class Streams(multiprocessing.Process):
 
+class Streams(multiprocessing.Process):
     def __init__(self, name: str):
         super().__init__()
         self.name = name
@@ -31,8 +31,12 @@ class Streams(multiprocessing.Process):
         return int(inlet.info().nominal_srate())
 
     def getInletInfo(self, inlet) -> dict:
-        inlet_info = {"Name": self.name, "Type": self.getType(inlet), "Channels": self.getChannelCount(inlet),
-                      "Sampling Rate": self.getNominalSRate(inlet)}
+        inlet_info = {
+            "Name": self.name,
+            "Type": self.getType(inlet),
+            "Channels": self.getChannelCount(inlet),
+            "Sampling Rate": self.getNominalSRate(inlet),
+        }
 
         return inlet_info
 
@@ -42,18 +46,9 @@ class Streams(multiprocessing.Process):
         inlet_info = self.getInletInfo(inlet)
 
         while True:
-            samples, timestamps = inlet.pull_chunk(max_samples=inlet_info["Sampling Rate"])
-            data = [np.array(samples),np.array(timestamps)]
-            if len(data[0])>0 and len(data[1])>0:
+            samples, timestamps = inlet.pull_chunk(
+                max_samples=inlet_info["Sampling Rate"]
+            )
+            data = [np.array(samples), np.array(timestamps)]
+            if len(data[0]) > 0 and len(data[1]) > 0:
                 self.data_queue.put(data)
-
-
-
-
-
-
-
-
-
-
-
