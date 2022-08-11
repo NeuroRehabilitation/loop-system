@@ -27,8 +27,8 @@ jobs:
         run: pip install black[jupyter]
       
       - name: 💋 Run Black Code Formatter
-        uses: lgeiger/black-action@master
+        uses: psf/black@stable
         with:
-          args: . --verbose --diff --color
+          options: "--verbose --diff --color"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
