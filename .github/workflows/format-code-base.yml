@@ -23,9 +23,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       
+      - name: 🐍 Install Jupyter Dependencies
+        run: pip install black[jupyter]
+      
       - name: 💋 Run Black Code Formatter
         uses: lgeiger/black-action@master
         with:
-          args: . --verbose
+          args: . --verbose --diff --color
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
