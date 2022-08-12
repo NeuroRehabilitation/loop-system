@@ -70,11 +70,3 @@ class ReceiveStreams(multiprocessing.Process):
                     if len(data_chunk[0]) > 0 and len(data_chunk[1]) > 0:
                         self.sender_queue.put((process.name,data_chunk))
                         # print(self.sender_queue.qsize())
-<<<<<<< HEAD
-=======
-
-
-# if __name__ == "__main__":
-#     receiver = ReceiveStreams()
-#     receiver.startProcess("OpenSignals")
->>>>>>> dd49315 (chore(code): format code base)
