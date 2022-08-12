@@ -56,7 +56,7 @@ class ReceiveStreams(multiprocessing.Process):
             self.n_processes += 1
 
         self.info_queue.put(self.streams_info)
-        if len(self.stream_processes)>0:
+        if len(self.stream_processes) > 0:
             print("Started all streams.")
 
         while self.n_processes > 0:
@@ -68,5 +68,5 @@ class ReceiveStreams(multiprocessing.Process):
                     samples, timestamps = data
                     data_chunk = [samples, timestamps]
                     if len(data_chunk[0]) > 0 and len(data_chunk[1]) > 0:
-                        self.sender_queue.put((process.name,data_chunk))
+                        self.sender_queue.put((process.name, data_chunk))
                         # print(self.sender_queue.qsize())
