@@ -29,7 +29,7 @@ class ReceiveStreams(multiprocessing.Process):
 
     def startProcess(self, name):
 
-        stream = Streams(name,self.data_queue)
+        stream = Streams(name, self.data_queue)
         inlet = stream.getInlet()
         inlet_info = stream.getInletInfo(inlet)
         stream.start()
