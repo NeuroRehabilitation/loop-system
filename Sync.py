@@ -46,10 +46,11 @@ class Sync(multiprocessing.Process):
             stream_name, data = streams_receiver.sender_queue.get()
             if stream_name == "OpenSignals":
                 dataframes_dict[stream_name]["Timestamps"].append(data[1])
-                for i in range(1,len(dataframes_dict[stream_name].keys())):
+                for i in range(1, len(dataframes_dict[stream_name].keys())):
                     column = "CH" + str(i)
                     dataframes_dict[stream_name][column].append(data[0][i])
         print(len(dataframes_dict["OpenSignals"]["Timestamps"]))
+
 
 if __name__ == "__main__":
     sync = Sync()

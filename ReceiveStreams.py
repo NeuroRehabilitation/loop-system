@@ -65,5 +65,3 @@ class ReceiveStreams(multiprocessing.Process):
                 if not self.receiver_queue.empty():
                     data = self.receiver_queue.get()
                     self.sender_queue.put((process.name, data))
-
-
