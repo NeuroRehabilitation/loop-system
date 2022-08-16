@@ -18,13 +18,13 @@ class Sync(multiprocessing.Process):
     def getStreamsInfo(self, streams_receiver):
         self.streams_info = streams_receiver.info_queue.get()
 
-    def createDataframe(self, stream_info: dict):
-        columns_labels = []
+    def createDict(self, stream_info: dict):
+        columns_labels = ["Timestamps"]
         for i in range(1, stream_info["Channels"]):
             columns_labels.append("CH" + str(i))
-        dataframe = pd.DataFrame(columns=columns_labels)
+        dict = {key: [] for key in columns_labels}
 
-        return dataframe
+        return dict
 
     def run(self):
 
@@ -34,7 +34,7 @@ class Sync(multiprocessing.Process):
         self.getStreamsInfo(streams_receiver)
 
         for stream in self.streams_info:
-            dataframes_dict[stream["Name"]] = self.createDataframe(stream)
+            dataframes_dict[stream["Name"]] = self.createDict(stream)
 
         # self.isRunning = True
         start_time = time.perf_counter()
@@ -43,18 +43,13 @@ class Sync(multiprocessing.Process):
         while elapsed_time < 5:
             elapsed_time = time.perf_counter() - start_time
             print(elapsed_time)
-            stream_name = streams_receiver.sender_queue.get()[0]
+            stream_name, data = streams_receiver.sender_queue.get()
             if stream_name == "OpenSignals":
-                df = pd.DataFrame()
-                for i in range(1, len(streams_receiver.sender_queue.get()[1][0][0])):
+                dataframes_dict[stream_name]["Timestamps"].append(data[1])
+                for i in range(1,len(dataframes_dict[stream_name].keys())):
                     column = "CH" + str(i)
-                    df[column] = streams_receiver.sender_queue.get()[1][0][:, i]
-                    dataframes_dict[stream_name] = pd.concat(
-                        [dataframes_dict[stream_name], df], ignore_index=True
-                    )
-                    # dataframes_dict[stream_name] = dataframes_dict[stream_name][column].concat(streams_receiver.sender_queue.get()[1][0][:,i],axis=1,ignore_index=True)
-        print(dataframes_dict["OpenSignals"])
-
+                    dataframes_dict[stream_name][column].append(data[0][i])
+        print(len(dataframes_dict["OpenSignals"]["Timestamps"]))
 
 if __name__ == "__main__":
     sync = Sync()
