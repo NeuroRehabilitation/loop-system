@@ -43,14 +43,20 @@ class Sync(multiprocessing.Process):
         while elapsed_time < 5:
             elapsed_time = time.perf_counter() - start_time
             print(elapsed_time)
-            stream_name, data = streams_receiver.sender_queue.get()
+            stream_name, data = streams_receiver.data_queue.get()
             if stream_name == "OpenSignals":
                 dataframes_dict[stream_name]["Timestamps"].append(data[1])
                 for i in range(1, len(dataframes_dict[stream_name].keys())):
                     column = "CH" + str(i)
                     dataframes_dict[stream_name][column].append(data[0][i])
-        print(len(dataframes_dict["OpenSignals"]["Timestamps"]))
-
+            if stream_name == "openvibeSignal":
+                pass
+                # dataframes_dict[stream_name]["Timestamps"].append(data[1])
+                # for i in range(1, len(dataframes_dict[stream_name].keys())):
+                #     column = "CH" + str(i)
+                #     dataframes_dict[stream_name][column].append(data[0][i])
+                # dataframes_dict[stream_name]["CH0"].append(data[0][0])
+        # print(len(dataframes_dict["openvibeSignal"]["Timestamps"]),len(dataframes_dict["openvibeSignal"]["CH0"]))
 
 if __name__ == "__main__":
     sync = Sync()

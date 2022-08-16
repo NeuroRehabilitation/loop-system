@@ -7,10 +7,10 @@ import time
 
 
 class Streams(multiprocessing.Process):
-    def __init__(self, name: str):
+    def __init__(self, name: str, data_queue):
         super().__init__()
         self.name = name
-        self.data_queue = multiprocessing.Queue()
+        self.data_queue = data_queue
 
     def getInlet(self):
 
@@ -49,4 +49,4 @@ class Streams(multiprocessing.Process):
             samples, timestamps = inlet.pull_sample()
             data = [samples, timestamps]
             if len(data) > 0:
-                self.data_queue.put(data)
+                self.data_queue.put((inlet_info["Name"],data))
