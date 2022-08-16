@@ -13,8 +13,9 @@ class ReceiveStreams(multiprocessing.Process):
             self.streams_info,
         ) = ([], [], [], [])
         self.n_processes = 0
-        self.receiver_queue = multiprocessing.Queue()
-        self.sender_queue = multiprocessing.Queue()
+        # self.receiver_queue = multiprocessing.Queue()
+        # self.sender_queue = multiprocessing.Queue()
+        self.data_queue = multiprocessing.Queue()
         self.info_queue = multiprocessing.Queue()
 
     def availableStreams(self) -> list:
@@ -28,7 +29,7 @@ class ReceiveStreams(multiprocessing.Process):
 
     def startProcess(self, name):
 
-        stream = Streams(name)
+        stream = Streams(name,self.data_queue)
         inlet = stream.getInlet()
         inlet_info = stream.getInletInfo(inlet)
         stream.start()
@@ -36,9 +37,9 @@ class ReceiveStreams(multiprocessing.Process):
 
         return stream, inlet_info
 
-    def acquireData(self, process) -> None:
-        while not process.data_queue.empty():
-            self.receiver_queue.put(process.data_queue.get())
+    # def acquireData(self, process) -> None:
+    #     while not process.data_queue.empty():
+    #         self.receiver_queue.put(process.data_queue.get())
 
     def stopProcess(self, process) -> None:
         process.join()
@@ -52,16 +53,16 @@ class ReceiveStreams(multiprocessing.Process):
         for name in self.stream_names:
             stream, inlet_info = self.startProcess(name)
             self.streams_info.append(inlet_info)
-            self.stream_processes.append(stream)
-            self.n_processes += 1
+            # self.stream_processes.append(stream)
+            # self.n_processes += 1
 
         self.info_queue.put(self.streams_info)
-        if len(self.stream_processes) > 0:
-            print("Started all streams.")
+        # if len(self.stream_processes) > 0:
+        #     print("Started all streams.")
 
-        while self.n_processes > 0:
-            for process in self.stream_processes:
-                self.acquireData(process)
-                if not self.receiver_queue.empty():
-                    data = self.receiver_queue.get()
-                    self.sender_queue.put((process.name, data))
+        # while self.n_processes > 0:
+        #     for process in self.stream_processes:
+        #         self.acquireData(process)
+        #         if not self.receiver_queue.empty():
+        #             data = self.receiver_queue.get()
+        #             self.sender_queue.put((process.name, data))
