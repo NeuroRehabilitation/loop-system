@@ -58,6 +58,7 @@ class Sync(multiprocessing.Process):
                 # dataframes_dict[stream_name]["CH0"].append(data[0][0])
         # print(len(dataframes_dict["openvibeSignal"]["Timestamps"]),len(dataframes_dict["openvibeSignal"]["CH0"]))
 
+
 if __name__ == "__main__":
     sync = Sync()
     sync.start()
