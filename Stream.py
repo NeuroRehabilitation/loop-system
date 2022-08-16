@@ -47,6 +47,6 @@ class Streams(multiprocessing.Process):
 
         while True:
             samples, timestamps = inlet.pull_sample()
-            data = [samples,timestamps]
+            data = [samples, timestamps]
             if len(data) > 0:
                 self.data_queue.put(data)
