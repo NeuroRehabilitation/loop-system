@@ -49,4 +49,4 @@ class Streams(multiprocessing.Process):
             samples, timestamps = inlet.pull_sample()
             data = [samples, timestamps]
             if len(data) > 0:
-                self.data_queue.put((inlet_info["Name"],data))
+                self.data_queue.put((inlet_info["Name"], data))
