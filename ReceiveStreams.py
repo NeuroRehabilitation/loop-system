@@ -61,12 +61,9 @@ class ReceiveStreams(multiprocessing.Process):
 
         while self.n_processes > 0:
             for process in self.stream_processes:
-                # print("Process {}".format(process.name))
                 self.acquireData(process)
                 if not self.receiver_queue.empty():
                     data = self.receiver_queue.get()
-                    samples, timestamps = data
-                    data_chunk = [samples, timestamps]
-                    if len(data_chunk[0]) > 0 and len(data_chunk[1]) > 0:
-                        self.sender_queue.put((process.name, data_chunk))
-                        # print(self.sender_queue.qsize())
+                    self.sender_queue.put((process.name, data))
+
+

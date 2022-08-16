@@ -46,9 +46,7 @@ class Streams(multiprocessing.Process):
         inlet_info = self.getInletInfo(inlet)
 
         while True:
-            samples, timestamps = inlet.pull_chunk(
-                max_samples=inlet_info["Sampling Rate"]
-            )
-            data = [np.array(samples), np.array(timestamps)]
-            if len(data[0]) > 0 and len(data[1]) > 0:
+            samples, timestamps = inlet.pull_sample()
+            data = [samples,timestamps]
+            if len(data) > 0:
                 self.data_queue.put(data)
