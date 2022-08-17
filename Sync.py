@@ -52,11 +52,7 @@ class Sync(multiprocessing.Process):
                         dataframes_dict[stream_name][key].append(data[0][i - 1])
             if stream_name == "openvibeSignal":
                 pass
-                # dataframes_dict[stream_name]["Timestamps"].append(data[1])
-                # for i in range(1, len(dataframes_dict[stream_name].keys())):
-                #     column = "CH" + str(i)
-                #     dataframes_dict[stream_name][column].append(data[0][i])
-                # dataframes_dict[stream_name]["CH0"].append(data[0][0])
+
         print(
             len(dataframes_dict["OpenSignals"]["Timestamps"]),
             len(dataframes_dict["OpenSignals"]["nSeq"]),
