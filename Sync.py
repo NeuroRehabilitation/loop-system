@@ -61,7 +61,7 @@ class Sync(multiprocessing.Process):
             len(dataframes_dict["OpenSignals"]["RESPBIT0"]),
             len(dataframes_dict["OpenSignals"]["EDABITREV1"]),
             len(dataframes_dict["openvibeSignal"]["Timestamps"]),
-            len(dataframes_dict["openvibeSignal"]["Time(s)"])
+            len(dataframes_dict["openvibeSignal"]["Time(s)"]),
         )
 
 
