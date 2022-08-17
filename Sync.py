@@ -57,8 +57,13 @@ class Sync(multiprocessing.Process):
                 #     column = "CH" + str(i)
                 #     dataframes_dict[stream_name][column].append(data[0][i])
                 # dataframes_dict[stream_name]["CH0"].append(data[0][0])
-        print(len(dataframes_dict["OpenSignals"]["Timestamps"]), len(dataframes_dict["OpenSignals"]["nSeq"]),
-              len(dataframes_dict["OpenSignals"]["RESPBIT0"]), len(dataframes_dict["OpenSignals"]["EDABITREV1"]))
+        print(
+            len(dataframes_dict["OpenSignals"]["Timestamps"]),
+            len(dataframes_dict["OpenSignals"]["nSeq"]),
+            len(dataframes_dict["OpenSignals"]["RESPBIT0"]),
+            len(dataframes_dict["OpenSignals"]["EDABITREV1"]),
+        )
+
 
 
 if __name__ == "__main__":
