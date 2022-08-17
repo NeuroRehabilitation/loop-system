@@ -67,12 +67,17 @@ class Sync(multiprocessing.Process):
                 if first_timestamp == 0:
                     first_timestamp = np.min(timestamp_openvibe, timestamp_opensignals)
                 else:
-                    if timestamp_opensignals >= first_timestamp and timestamp_openvibe >= first_timestamp:
+                    if (
+                        timestamp_opensignals >= first_timestamp
+                        and timestamp_openvibe >= first_timestamp
+                    ):
                         self.isSync = True
                         print("Is synced.")
                         print(f"Time elapsed = {elapsed_time}")
-                        print(f"Timestamp OpenSignals = {timestamp_opensignals}",
-                              f"Timestamp Openvibe = {timestamp_openvibe}")
+                        print(
+                            f"Timestamp OpenSignals = {timestamp_opensignals}",
+                            f"Timestamp Openvibe = {timestamp_openvibe}",
+                        )
 
         # print(
         #     len(dataframes_dict["OpenSignals"]["Timestamps"]),
