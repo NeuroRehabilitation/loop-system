@@ -65,7 +65,6 @@ class Sync(multiprocessing.Process):
         )
 
 
-
 if __name__ == "__main__":
     sync = Sync()
     sync.start()
