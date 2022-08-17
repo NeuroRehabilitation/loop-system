@@ -1,5 +1,7 @@
 import time
 
+import numpy as np
+
 from ReceiveStreams import *
 
 
@@ -8,7 +10,7 @@ class Sync(multiprocessing.Process):
         super().__init__()
         self.data_queue = multiprocessing.Queue()
         self.streams_info = []
-        self.isRunning = False
+        self.isSync = False
 
     def getStreams(self):
         streams_receiver = ReceiveStreams()
@@ -36,33 +38,50 @@ class Sync(multiprocessing.Process):
 
         for stream in self.streams_info:
             dataframes_dict[stream["Name"]] = self.createDict(stream)
-        # self.isRunning = True
+
         start_time = time.perf_counter()
         elapsed_time = 0
+        first_timestamp, timestamp_opensignals, timestamp_openvibe = 0, 0, 0
 
-        while elapsed_time < 5:
+        while elapsed_time < 20:
             elapsed_time = time.perf_counter() - start_time
-            print(elapsed_time)
+            # print(elapsed_time)
             stream_name, data = streams_receiver.data_queue.get()
             if stream_name == "OpenSignals":
-                dataframes_dict[stream_name]["Timestamps"].append(data[1])
-                for i, key in enumerate(dataframes_dict[stream_name].keys()):
-                    if key != "Timestamps":
-                        dataframes_dict[stream_name][key].append(data[0][i - 1])
+                if self.isSync:
+                    dataframes_dict[stream_name]["Timestamps"].append(data[1])
+                    for i, key in enumerate(dataframes_dict[stream_name].keys()):
+                        if key != "Timestamps":
+                            dataframes_dict[stream_name][key].append(data[0][i - 1])
+                else:
+                    timestamp_opensignals = data[1]
             if stream_name == "openvibeSignal":
-                dataframes_dict[stream_name]["Timestamps"].append(data[1])
-                for i, key in enumerate(dataframes_dict[stream_name].keys()):
-                    if key != "Timestamps":
-                        dataframes_dict[stream_name][key].append(data[0][i - 1])
+                if self.isSync:
+                    dataframes_dict[stream_name]["Timestamps"].append(data[1])
+                    for i, key in enumerate(dataframes_dict[stream_name].keys()):
+                        if key != "Timestamps":
+                            dataframes_dict[stream_name][key].append(data[0][i - 1])
+                else:
+                    timestamp_openvibe = data[1]
+            if not self.isSync:
+                if first_timestamp == 0:
+                    first_timestamp = np.min(timestamp_openvibe, timestamp_opensignals)
+                else:
+                    if timestamp_opensignals >= first_timestamp and timestamp_openvibe >= first_timestamp:
+                        self.isSync = True
+                        print("Is synced.")
+                        print(f"Time elapsed = {elapsed_time}")
+                        print(f"Timestamp OpenSignals = {timestamp_opensignals}",
+                              f"Timestamp Openvibe = {timestamp_openvibe}")
 
-        print(
-            len(dataframes_dict["OpenSignals"]["Timestamps"]),
-            len(dataframes_dict["OpenSignals"]["nSeq"]),
-            len(dataframes_dict["OpenSignals"]["RESPBIT0"]),
-            len(dataframes_dict["OpenSignals"]["EDABITREV1"]),
-            len(dataframes_dict["openvibeSignal"]["Timestamps"]),
-            len(dataframes_dict["openvibeSignal"]["Time(s)"]),
-        )
+        # print(
+        #     len(dataframes_dict["OpenSignals"]["Timestamps"]),
+        #     len(dataframes_dict["OpenSignals"]["nSeq"]),
+        #     len(dataframes_dict["OpenSignals"]["RESPBIT0"]),
+        #     len(dataframes_dict["OpenSignals"]["EDABITREV1"]),
+        #     len(dataframes_dict["openvibeSignal"]["Timestamps"]),
+        #     len(dataframes_dict["openvibeSignal"]["Time(s)"]),
+        # )
 
 
 if __name__ == "__main__":
