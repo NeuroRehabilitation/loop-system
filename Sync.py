@@ -1,5 +1,6 @@
+import time
+
 from ReceiveStreams import *
-import pandas as pd
 
 
 class Sync(multiprocessing.Process):
@@ -20,8 +21,8 @@ class Sync(multiprocessing.Process):
 
     def createDict(self, stream_info: dict):
         columns_labels = ["Timestamps"]
-        for i in range(1, stream_info["Channels"]):
-            columns_labels.append("CH" + str(i))
+        for key in stream_info["Channels Info"].keys():
+            columns_labels.append(stream_info["Channels Info"][key][0])
         dict = {key: [] for key in columns_labels}
 
         return dict
@@ -35,7 +36,6 @@ class Sync(multiprocessing.Process):
 
         for stream in self.streams_info:
             dataframes_dict[stream["Name"]] = self.createDict(stream)
-
         # self.isRunning = True
         start_time = time.perf_counter()
         elapsed_time = 0
@@ -45,10 +45,11 @@ class Sync(multiprocessing.Process):
             print(elapsed_time)
             stream_name, data = streams_receiver.data_queue.get()
             if stream_name == "OpenSignals":
-                dataframes_dict[stream_name]["Timestamps"].append(data[1])
-                for i in range(1, len(dataframes_dict[stream_name].keys())):
-                    column = "CH" + str(i)
-                    dataframes_dict[stream_name][column].append(data[0][i])
+                for i, key in enumerate(dataframes_dict[stream_name].keys()):
+                    if key == "Timestamps":
+                        dataframes_dict[stream_name][key].append(data[1])
+                    else:
+                        dataframes_dict[stream_name][key].append(data[0][i - 1])
             if stream_name == "openvibeSignal":
                 pass
                 # dataframes_dict[stream_name]["Timestamps"].append(data[1])
@@ -56,7 +57,8 @@ class Sync(multiprocessing.Process):
                 #     column = "CH" + str(i)
                 #     dataframes_dict[stream_name][column].append(data[0][i])
                 # dataframes_dict[stream_name]["CH0"].append(data[0][0])
-        # print(len(dataframes_dict["openvibeSignal"]["Timestamps"]),len(dataframes_dict["openvibeSignal"]["CH0"]))
+        print(len(dataframes_dict["OpenSignals"]["Timestamps"]), len(dataframes_dict["OpenSignals"]["nSeq"]),
+              len(dataframes_dict["OpenSignals"]["RESPBIT0"]), len(dataframes_dict["OpenSignals"]["EDABITREV1"]))
 
 
 if __name__ == "__main__":

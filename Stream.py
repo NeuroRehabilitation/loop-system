@@ -1,9 +1,6 @@
-import logging
+import multiprocessing
 
 from pylsl import *
-import multiprocessing
-import numpy as np
-import time
 
 
 class Streams(multiprocessing.Process):
@@ -27,6 +24,27 @@ class Streams(multiprocessing.Process):
     def getChannelCount(self, inlet) -> int:
         return int(inlet.info().channel_count())
 
+    def getChannelsInfo(self, inlet):
+
+        stream_channels = dict()
+        channels = inlet.info().desc().child("channels").child("channel")
+
+        for i in range(inlet.info().channel_count()):
+            # Get the channel number (e.g. 1)
+            channel = i
+
+            # Get the channel type (e.g. ECG)
+            sensor = channels.child_value("label")
+
+            # Get the channel unit (e.g. mV)
+            unit = channels.child_value("unit")
+
+            # Store the information in the stream_channels dictionary
+            stream_channels.update({channel: [sensor, unit]})
+            channels = channels.next_sibling()
+
+        return stream_channels
+
     def getNominalSRate(self, inlet) -> int:
         return int(inlet.info().nominal_srate())
 
@@ -36,6 +54,7 @@ class Streams(multiprocessing.Process):
             "Type": self.getType(inlet),
             "Channels": self.getChannelCount(inlet),
             "Sampling Rate": self.getNominalSRate(inlet),
+            "Channels Info": self.getChannelsInfo(inlet)
         }
 
         return inlet_info
