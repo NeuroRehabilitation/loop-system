@@ -54,7 +54,7 @@ class Streams(multiprocessing.Process):
             "Type": self.getType(inlet),
             "Channels": self.getChannelCount(inlet),
             "Sampling Rate": self.getNominalSRate(inlet),
-            "Channels Info": self.getChannelsInfo(inlet)
+            "Channels Info": self.getChannelsInfo(inlet),
         }
 
         return inlet_info
