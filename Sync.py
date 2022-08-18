@@ -10,8 +10,9 @@ class Sync(multiprocessing.Process):
         super().__init__()
         self.data_queue = multiprocessing.Queue()
         self.streams_info = []
-        self.synced_dict = {}
+        self.synced_dict, self.info_dict = {}, {}
         self.isSync = False
+        self.n_full_buffers = 0
         self.buffer_window = buffer_window
 
     def getStreams(self):
@@ -37,6 +38,18 @@ class Sync(multiprocessing.Process):
             if key != "Timestamps":
                 self.synced_dict[stream_name][key].append(data[0][i - 1])
 
+    def getBufferMaxSize(self, stream_name: str) -> int:
+        return int(self.buffer_window * self.info_dict[stream_name]["Sampling Rate"])
+
+    def checkBufferSize(self, buffer_full: int, max_size: int, stream_name: str):
+        if buffer_full == len(self.synced_dict[stream_name].keys()):
+            self.n_full_buffers += 1
+            print("All buffers full")
+        else:
+            for key in self.synced_dict[stream_name].keys():
+                if len(self.synced_dict[stream_name][key]) == max_size:
+                    buffer_full += 1
+
     def run(self):
 
         streams_receiver = self.getStreams()
@@ -44,6 +57,8 @@ class Sync(multiprocessing.Process):
 
         for stream in self.streams_info:
             self.synced_dict[stream["Name"]] = self.createDict(stream)
+            self.info_dict[stream["Name"]] = stream
+            self.info_dict[stream["Name"]]["Buffers Full"] = 0
 
         start_time = time.perf_counter()
         elapsed_time = 0
@@ -55,11 +70,23 @@ class Sync(multiprocessing.Process):
             stream_name, data = streams_receiver.data_queue.get()
             if stream_name == "OpenSignals":
                 if self.isSync:
+                    max_size = self.getBufferMaxSize(stream_name)
+                    self.checkBufferSize(
+                        self.info_dict[stream_name]["Buffers Full"],
+                        max_size,
+                        stream_name,
+                    )
                     self.fillData(data, stream_name)
                 else:
                     timestamp_opensignals = data[1]
             if stream_name == "openvibeSignal":
                 if self.isSync:
+                    max_size = self.getBufferMaxSize(stream_name)
+                    self.checkBufferSize(
+                        self.info_dict[stream_name]["Buffers Full"],
+                        max_size,
+                        stream_name,
+                    )
                     self.fillData(data, stream_name)
                 else:
                     timestamp_openvibe = data[1]
@@ -79,17 +106,18 @@ class Sync(multiprocessing.Process):
                             f"Timestamp Openvibe = {timestamp_openvibe}",
                         )
 
-        print(
-            len(self.synced_dict["OpenSignals"]["Timestamps"]),
-            len(self.synced_dict["OpenSignals"]["nSeq"]),
-            len(self.synced_dict["OpenSignals"]["RESPBIT0"]),
-            len(self.synced_dict["OpenSignals"]["EDABITREV1"]),
-            len(self.synced_dict["openvibeSignal"]["Timestamps"]),
-            len(self.synced_dict["openvibeSignal"]["Time(s)"]),
-        )
+        # print(
+        #     len(self.synced_dict["OpenSignals"]["Timestamps"]),
+        #     len(self.synced_dict["OpenSignals"]["nSeq"]),
+        #     len(self.synced_dict["OpenSignals"]["RESPBIT0"]),
+        #     len(self.synced_dict["OpenSignals"]["EDABITREV1"]),
+        #     len(self.synced_dict["openvibeSignal"]["Timestamps"]),
+        #     len(self.synced_dict["openvibeSignal"]["Time(s)"]),
+        # )
+        # print(f"Number of full buffers = {self.n_full_buffers}")
 
 
 if __name__ == "__main__":
-    sync = Sync(buffer_window=40)
+    sync = Sync(buffer_window=5)
     sync.start()
     sync.join()
