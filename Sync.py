@@ -11,7 +11,7 @@ class Sync(multiprocessing.Process):
         self.data_queue = multiprocessing.Queue()
         self.streams_info = []
         self.synced_dict, self.info_dict, self.timestamps = {}, {}, {}
-        self.isSync, self.fullBuffers = False, False
+        self.isSync, self.isFirstBuffer = False, True
         self.n_full_buffers = 0
         self.buffer_window = buffer_window
 
@@ -46,8 +46,8 @@ class Sync(multiprocessing.Process):
             if self.info_dict[stream_name]["Number full arrays"] == len(
                 self.synced_dict[stream_name].keys()
             ):
-                self.n_full_buffers += 1
                 self.info_dict[stream_name]["All arrays full"] = True
+                self.n_full_buffers += 1
             else:
                 for key in self.synced_dict[stream_name].keys():
                     if len(self.synced_dict[stream_name][key]) == max_size:
@@ -55,16 +55,9 @@ class Sync(multiprocessing.Process):
                     if len(self.synced_dict[stream_name][key]) < max_size:
                         self.fillData(data, stream_name)
 
-    def checkAllBuffers(self):
-        if not self.fullBuffers and self.n_full_buffers == len(self.synced_dict.keys()):
-            self.fullBuffers = True
-            print("All buffers are full")
-            print(
-                "OpenSignals = ",
-                len(self.synced_dict["OpenSignals"]["Timestamps"]),
-                "Openvibe",
-                len(self.synced_dict["openvibeSignal"]["Timestamps"]),
-            )
+    def slidingWindow(self, stream_name: str):
+        for key in self.synced_dict[stream_name].keys():
+            self.synced_dict[stream_name][key].pop(0)
 
     def syncStreams(self, first_timestamp: int) -> None:
         if first_timestamp == 0 and len(self.timestamps.values()) > 1:
@@ -72,22 +65,30 @@ class Sync(multiprocessing.Process):
         if first_timestamp != 0:
             if all(i >= first_timestamp for i in self.timestamps.values()):
                 self.isSync = True
-                print("Is synced.")
-                print(
-                    "Timestamp OpenSignals =" + str(self.timestamps["OpenSignals"]),
-                    "Timestamp Openvibe = " + str(self.timestamps["openvibeSignal"]),
-                )
+                print("Streams are Synced.")
 
     def getBuffers(self, data: tuple, stream_name: str):
-        if self.isSync and not self.fullBuffers:
-            max_size = self.getBufferMaxSize(stream_name)
-            self.checkBufferSize(
-                data,
-                max_size,
-                stream_name,
-            )
-        else:
+        if not self.isSync:
             self.timestamps[stream_name] = data[1]
+        else:
+            if self.isFirstBuffer:
+                if self.n_full_buffers == len(self.synced_dict.keys()):
+                    print("All arrays full")
+                    print(
+                        len(self.synced_dict["OpenSignals"]["Timestamps"]),
+                        len(self.synced_dict["openvibeSignal"]["Timestamps"]),
+                    )
+                    self.isFirstBuffer = False
+                else:
+                    max_size = self.getBufferMaxSize(stream_name)
+                    self.checkBufferSize(
+                        data,
+                        max_size,
+                        stream_name,
+                    )
+            else:
+                self.slidingWindow(stream_name)
+                self.fillData(data, stream_name)
 
     def run(self):
 
@@ -107,18 +108,13 @@ class Sync(multiprocessing.Process):
 
         while elapsed_time < 10:
             elapsed_time = time.perf_counter() - start_time
-            # print(elapsed_time)
-            self.checkAllBuffers()
 
-            if not self.fullBuffers:
-                stream_name, data = streams_receiver.data_queue.get()
-                if not self.isSync:
-                    self.syncStreams(first_timestamp)
-                self.getBuffers(data, stream_name)
-                # if stream_name == "OpenSignals":
-                #     self.getBuffers(data, stream_name)
-                # if stream_name == "openvibeSignal":
-                #     self.getBuffers(data, stream_name)
+            if not self.isSync:
+                self.syncStreams(first_timestamp)
+
+            stream_name, data = streams_receiver.data_queue.get()
+
+            self.getBuffers(data, stream_name)
 
         print(
             len(self.synced_dict["OpenSignals"]["Timestamps"]),
