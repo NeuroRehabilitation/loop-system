@@ -1,7 +1,5 @@
 import time
-
-import numpy as np
-
+import matplotlib.pyplot as plt
 from ReceiveStreams import *
 
 
@@ -9,7 +7,7 @@ class Sync(multiprocessing.Process):
     def __init__(self, buffer_window: int):
         super().__init__()
         self.data_queue = multiprocessing.Queue()
-        self.streams_info = []
+        self.streams_info, self.childProcesses = [], []
         self.synced_dict, self.info_dict, self.timestamps = {}, {}, {}
         self.isSync, self.isFirstBuffer = False, True
         self.n_full_buffers = 0
@@ -27,6 +25,7 @@ class Sync(multiprocessing.Process):
     def createDict(self, stream_info: dict) -> dict:
         columns_labels = ["Timestamps"]
         for key in stream_info["Channels Info"].keys():
+            print(stream_info["Channels Info"][key][0])
             columns_labels.append(stream_info["Channels Info"][key][0])
         dict = {key: [] for key in columns_labels}
 
@@ -95,6 +94,10 @@ class Sync(multiprocessing.Process):
         streams_receiver = self.getStreams()
         self.getStreamsInfo(streams_receiver)
 
+        active = multiprocessing.active_children()
+        for child in active:
+            print(child.name)
+
         first_timestamp = 0
 
         for stream in self.streams_info:
@@ -106,7 +109,8 @@ class Sync(multiprocessing.Process):
         start_time = time.perf_counter()
         elapsed_time = 0
 
-        while elapsed_time < 10:
+        while elapsed_time < 20:
+            print(elapsed_time)
             elapsed_time = time.perf_counter() - start_time
 
             if not self.isSync:
@@ -119,14 +123,18 @@ class Sync(multiprocessing.Process):
         print(
             len(self.synced_dict["OpenSignals"]["Timestamps"]),
             len(self.synced_dict["OpenSignals"]["nSeq"]),
-            len(self.synced_dict["OpenSignals"]["RESPBIT0"]),
-            len(self.synced_dict["OpenSignals"]["EDABITREV1"]),
-            len(self.synced_dict["openvibeSignal"]["Timestamps"]),
-            len(self.synced_dict["openvibeSignal"]["Time(s)"]),
+            len(self.synced_dict["OpenSignals"]["ECGBIT0"]),
         )
+
+        plt.plot(self.synced_dict["OpenSignals"]["ECGBIT0"])
+        plt.show()
+
+        streams_receiver.stopChildProcesses()
+        streams_receiver.terminate()
+        streams_receiver.join()
 
 
 if __name__ == "__main__":
-    sync = Sync(buffer_window=5)
+    sync = Sync(buffer_window=20)
     sync.start()
     sync.join()
