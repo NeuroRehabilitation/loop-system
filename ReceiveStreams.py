@@ -1,16 +1,17 @@
+import multiprocessing
+
 from Stream import *
+import sys, signal
 
 
 class ReceiveStreams(multiprocessing.Process):
     def __init__(self):
         super().__init__()
         (
-            self.stream_processes,
             self.stream_names,
             self.streams_inlet,
             self.streams_info,
-        ) = ([], [], [], [])
-        self.n_processes = 0
+        ) = ([], [], [])
         self.data_queue = multiprocessing.Queue()
         self.info_queue = multiprocessing.Queue()
 
@@ -33,10 +34,14 @@ class ReceiveStreams(multiprocessing.Process):
 
         return stream, inlet_info
 
-    def stopProcess(self, process) -> None:
-        process.join()
-        print("Process {} finished.".format(process.name))
-        self.n_processes -= 1
+    def stopChildProcesses(self):
+        # get all active child processes
+        active = multiprocessing.active_children()
+        # terminate all active children
+        for child in active:
+            child.terminate()
+        for child in active:
+            child.join()
 
     def run(self) -> None:
 
@@ -45,5 +50,4 @@ class ReceiveStreams(multiprocessing.Process):
         for name in self.stream_names:
             stream, inlet_info = self.startProcess(name)
             self.streams_info.append(inlet_info)
-
         self.info_queue.put(self.streams_info)
