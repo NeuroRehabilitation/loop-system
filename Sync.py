@@ -9,7 +9,7 @@ class Sync(multiprocessing.Process):
         self.data_queue = multiprocessing.Queue()
         self.streams_info = []
         self.synced_dict, self.info_dict, self.timestamps = {}, {}, {}
-        self.isSync, self.isFirstBuffer = False, True
+        self.startAcquisition, self.isSync, self.isFirstBuffer = False, False, True
         self.n_full_buffers = 0
         self.buffer_window = buffer_window
 
@@ -64,16 +64,17 @@ class Sync(multiprocessing.Process):
         """Create Sliding window to update the oldest element of the array (index 0) with the newest sample"""
         for key in self.synced_dict[stream_name].keys():
             self.synced_dict[stream_name][key].pop(0)
-        # print("Sliding window")
 
     def syncStreams(self, first_timestamp: int) -> None:
         """Synchronize streams by comparing the first timestamp of each stream"""
-        if first_timestamp == 0 and len(self.timestamps.values()) > 1:
+
+        if first_timestamp == 0 and len(self.timestamps.values()) > 0:
             first_timestamp = min(self.timestamps.values())
         if first_timestamp != 0:
             if all(i >= first_timestamp for i in self.timestamps.values()):
                 self.isSync = True
                 print("Streams are Synced.")
+                print(first_timestamp)
 
     def getBuffers(self, data: tuple, stream_name: str):
         """Function to get the buffers already synced"""
@@ -111,9 +112,8 @@ class Sync(multiprocessing.Process):
         start_time = time.perf_counter()
         elapsed_time = 0
 
-        while elapsed_time < 15:
+        while self.startAcquisition:
 
-            # print(self.synced_dict["OpenSignals"].keys())
             elapsed_time = time.perf_counter() - start_time
 
             if not self.isSync:
@@ -123,15 +123,12 @@ class Sync(multiprocessing.Process):
             else:
                 stream_name, data = streams_receiver.data_queue.get()
                 self.getBuffers(data, stream_name)
-            # print(elapsed_time)
-            print(
-                len(self.synced_dict["OpenSignals"]["Timestamps"]),
-                len(self.synced_dict["OpenSignals"]["nSeq"]),
-            )
+            print(elapsed_time)
 
-        # plt.plot(self.synced_dict["OpenSignals"]["ECGBIT0"])
-        plt.plot(self.synced_dict["OpenSignals"]["RAW0"])
-        plt.show()
+        # plt.figure()
+        # plt.plot(self.synced_dict["OpenSignals"]["RAW0"])
+        # plt.plot(self.synced_dict["OpenSignals"]["RAW1"])
+        # plt.show()
 
         streams_receiver.stopChildProcesses()
         streams_receiver.terminate()
@@ -139,6 +136,6 @@ class Sync(multiprocessing.Process):
 
 
 if __name__ == "__main__":
-    sync = Sync(buffer_window=10)
+    sync = Sync(buffer_window=20)
     sync.start()
     sync.join()
