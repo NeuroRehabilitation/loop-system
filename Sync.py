@@ -1,15 +1,17 @@
-import time
-import matplotlib.pyplot as plt
 from ReceiveStreams import *
 
 
 class Sync(multiprocessing.Process):
     def __init__(self, buffer_window: int):
         super().__init__()
-        self.data_queue = multiprocessing.Queue()
+        self.data_queue, self.buffer_queue = (
+            multiprocessing.Queue(),
+            multiprocessing.Queue(),
+        )
         self.streams_info = []
         self.synced_dict, self.info_dict, self.timestamps = {}, {}, {}
-        self.startAcquisition, self.isSync, self.isFirstBuffer = False, False, True
+        self.isSync, self.isFirstBuffer = False, True
+        self.startAcquisition = multiprocessing.Value("i", 0)
         self.n_full_buffers = 0
         self.buffer_window = buffer_window
 
@@ -61,6 +63,7 @@ class Sync(multiprocessing.Process):
                         self.info_dict[stream_name]["Number full arrays"] += 1
 
     def slidingWindow(self, stream_name: str):
+        print("Sliding Window")
         """Create Sliding window to update the oldest element of the array (index 0) with the newest sample"""
         for key in self.synced_dict[stream_name].keys():
             self.synced_dict[stream_name][key].pop(0)
@@ -94,6 +97,7 @@ class Sync(multiprocessing.Process):
             else:
                 self.slidingWindow(stream_name)
                 self.fillData(data, stream_name)
+                self.buffer_queue.put(self.synced_dict)
 
     def run(self):
 
@@ -109,13 +113,7 @@ class Sync(multiprocessing.Process):
             )
             self.info_dict[stream["Name"]]["Number full arrays"] = 0
 
-        start_time = time.perf_counter()
-        elapsed_time = 0
-
-        while self.startAcquisition:
-
-            elapsed_time = time.perf_counter() - start_time
-
+        while bool(self.startAcquisition.value):
             if not self.isSync:
                 stream_name, data_temp = streams_receiver.data_queue.get()
                 self.getBuffers(data_temp, stream_name)
@@ -123,19 +121,7 @@ class Sync(multiprocessing.Process):
             else:
                 stream_name, data = streams_receiver.data_queue.get()
                 self.getBuffers(data, stream_name)
-            print(elapsed_time)
-
-        # plt.figure()
-        # plt.plot(self.synced_dict["OpenSignals"]["RAW0"])
-        # plt.plot(self.synced_dict["OpenSignals"]["RAW1"])
-        # plt.show()
 
         streams_receiver.stopChildProcesses()
         streams_receiver.terminate()
         streams_receiver.join()
-
-
-if __name__ == "__main__":
-    sync = Sync(buffer_window=20)
-    sync.start()
-    sync.join()

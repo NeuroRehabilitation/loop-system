@@ -39,6 +39,7 @@ class ReceiveStreams(multiprocessing.Process):
         active = multiprocessing.active_children()
         # terminate all active children
         for child in active:
+            print("Process finished")
             child.terminate()
         for child in active:
             child.join()
