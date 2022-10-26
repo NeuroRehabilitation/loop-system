@@ -63,7 +63,6 @@ class Sync(multiprocessing.Process):
                         self.info_dict[stream_name]["Number full arrays"] += 1
 
     def slidingWindow(self, stream_name: str):
-        print("Sliding Window")
         """Create Sliding window to update the oldest element of the array (index 0) with the newest sample"""
         for key in self.synced_dict[stream_name].keys():
             self.synced_dict[stream_name][key].pop(0)
@@ -121,6 +120,7 @@ class Sync(multiprocessing.Process):
             else:
                 stream_name, data = streams_receiver.data_queue.get()
                 self.getBuffers(data, stream_name)
+                # print(self.buffer_queue.qsize())
 
         streams_receiver.stopChildProcesses()
         streams_receiver.terminate()
