@@ -28,7 +28,7 @@ class Manager(multiprocessing.Process):
 
     def run(self):
 
-        sync = Sync(buffer_window=5)
+        sync = Sync(buffer_window=45)
         sync.start()
         sync.startAcquisition.value = 1
 
@@ -44,15 +44,13 @@ class Manager(multiprocessing.Process):
                     self.getOpenSignals()
                     # call function getOpenSignals.
 
-            if elapsed_time >= 10:
+            if elapsed_time >= 60:
                 sync.startAcquisition.value = 0
                 plt.figure()
-                plt.plot(self.data["OpenSignals"]["RAW0"])
+                plt.plot(self.data["OpenSignals"]["ECGBIT0"])
+                plt.plot(self.data["OpenSignals"]["RESPBIT1"])
                 plt.show()
 
-        # plt.figure()
-        # plt.plot(sync.synced_dict["OpenSignals"]["RAW0"])
-        # plt.show()
         sync.terminate()
         sync.join()
 
