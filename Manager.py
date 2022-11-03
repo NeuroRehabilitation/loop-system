@@ -1,53 +1,51 @@
 from Sync import *
 import time
 import matplotlib.pyplot as plt
+from lib.sensors import *
 
 
-class Manager(multiprocessing.Process):
+class Manager:
     def __init__(self):
         super().__init__()
         self.data = {}
+        self.info = []
 
     def getOpenSignals(self):
-        for key in self.data["OpenSignals"].keys():
-            if key.startswith("ECG"):
-                print("ECG")
-                sensor = HRV(self.data["OpenSignals"][key], 1000, 16)
-                (
-                    heart_rate,
-                    time_features,
-                    poincare_features,
-                    frequency_features,
-                ) = sensor.getFeatures()
-                print(f"HR = ".format(heart_rate))
-                # Process ECG
-            if key.startswith("EDA"):
-                print("EDA")
-                sensor = EDA(self.data["OpenSignals"][key], 1000, 16)
-                (
-                    eda_phasic_dict,
-                    eda_tonic_dict,
-                    SCR_Amplitude_dict,
-                    SCR_RiseTime_dict,
-                    SCR_RecoveryTime_dict,
-                    frequency_features,
-                ) = sensor.getFeatures()
-                # Process EDA
-            if key.startswith("RESP"):
-                print("RESP")
-                sensor = RESP(self.data["OpenSignals"][key], 1000, 16)
-                signals, info = sensor.process_RESP()
-                # Process RESP
-            if key.startswith("TEMP"):
-                print("SKT")
-                sensor = TEMP(self.data["OpenSignals"][key], 1000, 16)
-                temp = sensor.getFeatures()
-                # Process TEMP
+        for stream in self.info:
+            if stream["Name"] == "OpenSignals":
+                fs = stream["Sampling Rate"]
+                for key in self.data["OpenSignals"].keys():
+                    if key.startswith("ECG"):
+                        sensor = HRV(self.data["OpenSignals"][key], fs, 16)
+                        (
+                            heart_rate_features,
+                            time_features,
+                            poincare_features,
+                            frequency_features,
+                        ) = sensor.getFeatures()
+                    if key.startswith("EDA"):
+                        sensor = EDA(self.data["OpenSignals"][key], fs, 16)
+                        (
+                            eda_phasic_dict,
+                            eda_tonic_dict,
+                            SCR_Amplitude_dict,
+                            SCR_RiseTime_dict,
+                            SCR_RecoveryTime_dict,
+                            frequency_features,
+                        ) = sensor.getFeatures()
+                    if key.startswith("RESP"):
+                        sensor = RESP(self.data["OpenSignals"][key], fs, 16)
+                        signals, info = sensor.process_RESP()
+                    if key.startswith("TEMP"):
+                        sensor = TEMP(self.data["OpenSignals"][key], fs, 16)
+                        temp = sensor.getFeatures()
 
     def run(self):
-        sync = Sync(buffer_window=45)
+        sync = Sync(buffer_window=15)
         sync.start()
         sync.startAcquisition.value = 1
+
+        self.info = sync.info_queue.get()
 
         start_time = time.perf_counter()
 
@@ -55,19 +53,12 @@ class Manager(multiprocessing.Process):
             elapsed_time = time.perf_counter() - start_time
             if sync.buffer_queue.qsize() > 0:
                 self.data = sync.buffer_queue.get()
-                print(self.data["OpenSignals"].keys())
 
-                # if "OpenSignals" in self.data.keys():
-                #     pass
-                # self.getOpenSignals()
-                # call function getOpenSignals.
+                if "OpenSignals" in self.data.keys():
+                    self.getOpenSignals()
 
-            if elapsed_time >= 60:
+            if elapsed_time >= 30:
                 sync.startAcquisition.value = 0
-                plt.figure()
-                plt.plot(self.data["OpenSignals"]["ECGBIT0"])
-                plt.plot(self.data["OpenSignals"]["RESPBIT1"])
-                plt.show()
 
         sync.terminate()
         sync.join()
@@ -75,5 +66,6 @@ class Manager(multiprocessing.Process):
 
 if __name__ == "__main__":
     manager = Manager()
-    manager.start()
-    manager.join()
+    process = multiprocessing.Process(target=manager.run())
+    process.start()
+    process.join()

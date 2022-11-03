@@ -4,7 +4,8 @@ from ReceiveStreams import *
 class Sync(multiprocessing.Process):
     def __init__(self, buffer_window: int):
         super().__init__()
-        self.data_queue, self.buffer_queue = (
+        self.data_queue, self.buffer_queue, self.info_queue = (
+            multiprocessing.Queue(),
             multiprocessing.Queue(),
             multiprocessing.Queue(),
         )
@@ -25,6 +26,7 @@ class Sync(multiprocessing.Process):
     def getStreamsInfo(self, streams_receiver) -> None:
         """Get streams information"""
         self.streams_info = streams_receiver.info_queue.get()
+        self.info_queue.put(self.streams_info)
 
     def createDict(self, stream_info: dict) -> dict:
         """Create dictionary with data from each stream
