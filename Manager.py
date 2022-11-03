@@ -12,22 +12,39 @@ class Manager(multiprocessing.Process):
         for key in self.data["OpenSignals"].keys():
             if key.startswith("ECG"):
                 print("ECG")
+                sensor = HRV(self.data["OpenSignals"][key], 1000, 16)
+                (
+                    heart_rate,
+                    time_features,
+                    poincare_features,
+                    frequency_features,
+                ) = sensor.getFeatures()
+                print(f"HR = ".format(heart_rate))
                 # Process ECG
             if key.startswith("EDA"):
                 print("EDA")
+                sensor = EDA(self.data["OpenSignals"][key], 1000, 16)
+                (
+                    eda_phasic_dict,
+                    eda_tonic_dict,
+                    SCR_Amplitude_dict,
+                    SCR_RiseTime_dict,
+                    SCR_RecoveryTime_dict,
+                    frequency_features,
+                ) = sensor.getFeatures()
                 # Process EDA
             if key.startswith("RESP"):
                 print("RESP")
-                # Process EDA
+                sensor = RESP(self.data["OpenSignals"][key], 1000, 16)
+                signals, info = sensor.process_RESP()
+                # Process RESP
             if key.startswith("TEMP"):
                 print("SKT")
-                # Process EDA
-            if key.startswith("fNIRS"):
-                print("fNIRS")
-                # Process EDA
+                sensor = TEMP(self.data["OpenSignals"][key], 1000, 16)
+                temp = sensor.getFeatures()
+                # Process TEMP
 
     def run(self):
-
         sync = Sync(buffer_window=45)
         sync.start()
         sync.startAcquisition.value = 1
@@ -40,9 +57,10 @@ class Manager(multiprocessing.Process):
                 self.data = sync.buffer_queue.get()
                 print(self.data["OpenSignals"].keys())
 
-                if "OpenSignals" in self.data.keys():
-                    self.getOpenSignals()
-                    # call function getOpenSignals.
+                # if "OpenSignals" in self.data.keys():
+                #     pass
+                # self.getOpenSignals()
+                # call function getOpenSignals.
 
             if elapsed_time >= 60:
                 sync.startAcquisition.value = 0
