@@ -65,7 +65,7 @@ mkl-random @ file:///C:/ci_310/mkl_random_1643050563308/work
 mkl-service==2.4.0
 mypy-extensions==0.4.3
 nbclient==0.6.6
-nbconvert==6.5.0
+nbconvert==6.5.1
 nbformat==5.4.0
 nest-asyncio==1.5.5
 neurokit2==0.2.0
