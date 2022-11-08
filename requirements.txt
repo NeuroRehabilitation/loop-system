@@ -88,7 +88,7 @@ prometheus-client==0.14.1
 prompt-toolkit==3.0.30
 psutil==5.9.1
 pure-eval==0.2.2
-py==1.8.0
+py==1.11.0
 pyasn1 @ file:///Users/ktietz/demo/mc3/conda-bld/pyasn1_1629708007385/work
 pyasn1-modules==0.2.8
 pycodestyle @ file:///tmp/build/80754af9/pycodestyle_1636635402688/work
