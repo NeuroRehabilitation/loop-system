@@ -1,4 +1,5 @@
 from ReceiveStreams import *
+import matplotlib.pyplot as plt
 
 
 class Sync(multiprocessing.Process):
