@@ -77,7 +77,6 @@ class Manager:
             if stream["Name"] == "openvibeSignal":
                 EEG_dict = {}
                 fs = stream["Sampling Rate"]
-                print(fs)
                 for i, key in enumerate(self.data["openvibeSignal"]):
                     if i > 0 and i < 33:
                         channel = "EEG" + str(i)
@@ -86,7 +85,7 @@ class Manager:
                 print(EEG_dict)
 
     def run(self):
-        sync = Sync(buffer_window=10)
+        sync = Sync(buffer_window=15)
         sync.start()
         sync.startAcquisition.value = 1
 
@@ -103,7 +102,7 @@ class Manager:
                 if "openvibeSignal" in self.data.keys():
                     self.getOpenvibe()
 
-            if elapsed_time >= 30:
+            if elapsed_time >= 20:
                 sync.startAcquisition.value = 0
 
         sync.terminate()
