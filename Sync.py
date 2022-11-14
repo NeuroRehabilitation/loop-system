@@ -1,5 +1,7 @@
+from PyQt5.QtWidgets import QStyleFactory
+
 from ReceiveStreams import *
-import matplotlib.pyplot as plt
+from Plot import *
 
 
 class Sync(multiprocessing.Process):
@@ -53,7 +55,7 @@ class Sync(multiprocessing.Process):
         """Set the size of the buffer to send to process - window*fs"""
         return int(self.buffer_window * self.info_dict[stream_name]["Sampling Rate"])
 
-    def checkBufferSize(self, data: tuple, max_size: int, stream_name: str):
+    def checkBufferSize(self, max_size: int, stream_name: str):
         """Check if all the buffers are full before sending to process"""
         if self.isSync:
             if self.info_dict[stream_name]["Number full arrays"] == len(
@@ -92,7 +94,6 @@ class Sync(multiprocessing.Process):
                     self.isFirstBuffer = False
                 else:
                     self.checkBufferSize(
-                        data,
                         self.info_dict[stream_name]["Max Size"],
                         stream_name,
                     )
@@ -115,6 +116,12 @@ class Sync(multiprocessing.Process):
             )
             self.info_dict[stream["Name"]]["Number full arrays"] = 0
 
+        app = QApplication(sys.argv)
+        widget = Main()
+        worker = Worker()
+        widget.make_connection(worker)
+        worker.start()
+
         while bool(self.startAcquisition.value):
             if not self.isSync:
                 stream_name, data_temp = streams_receiver.data_queue.get()
@@ -122,9 +129,12 @@ class Sync(multiprocessing.Process):
                 self.syncStreams(first_timestamp)
             else:
                 stream_name, data = streams_receiver.data_queue.get()
+                worker.data = data[0][1]
+                print(worker.data)
                 self.getBuffers(data, stream_name)
                 # print(self.buffer_queue.qsize())
 
         streams_receiver.stopChildProcesses()
         streams_receiver.terminate()
         streams_receiver.join()
+        sys.exit(app.exec_())

@@ -1,3 +1,5 @@
+import multiprocessing
+
 from Sync import *
 import time
 from lib.sensors import *
@@ -102,7 +104,7 @@ class Manager:
                 if "openvibeSignal" in self.data.keys():
                     self.getOpenvibe()
 
-            if elapsed_time >= 20:
+            if elapsed_time >= 120:
                 sync.startAcquisition.value = 0
 
         sync.terminate()
