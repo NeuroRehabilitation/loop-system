@@ -2,7 +2,7 @@ alabaster @ file:///home/ktietz/src/ci/alabaster_1611921544520/work
 appdirs==1.4.3
 argon2-cffi==21.3.0
 argon2-cffi-bindings==21.2.0
-asttokens==2.0.5
+asttokens==2.1.0
 atomicwrites @ file:///Users/ktietz/demo/mc3/conda-bld/atomicwrites_1630511751522/work
 attrs==21.4.0
 autopep8==1.4.4
