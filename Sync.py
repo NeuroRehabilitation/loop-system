@@ -116,11 +116,11 @@ class Sync(multiprocessing.Process):
             )
             self.info_dict[stream["Name"]]["Number full arrays"] = 0
 
-        app = QApplication(sys.argv)
-        widget = Main()
-        worker = Worker()
-        widget.make_connection(worker)
-        worker.start()
+        # app = QApplication(sys.argv)
+        # widget = Main()
+        # worker = Worker()
+        # widget.make_connection(worker)
+        # worker.start()
 
         while bool(self.startAcquisition.value):
             if not self.isSync:
@@ -129,12 +129,12 @@ class Sync(multiprocessing.Process):
                 self.syncStreams(first_timestamp)
             else:
                 stream_name, data = streams_receiver.data_queue.get()
-                worker.data = data[0][1]
-                print(worker.data)
+                # worker.data = data[0][1]
+                # print(worker.data)
                 self.getBuffers(data, stream_name)
                 # print(self.buffer_queue.qsize())
 
         streams_receiver.stopChildProcesses()
         streams_receiver.terminate()
         streams_receiver.join()
-        sys.exit(app.exec_())
+        # sys.exit(app.exec_())
