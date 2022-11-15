@@ -114,7 +114,7 @@ pywinpty==2.0.6
 pyxdf==1.16.3
 PyYAML==6.0
 pyzmq==23.2.0
-qtconsole==5.3.1
+qtconsole==5.4.0
 QtPy==2.1.0
 readme-renderer @ file:///C:/ci_310/readme_renderer_1642120771396/work
 regex==2022.7.25
