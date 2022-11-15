@@ -57,7 +57,7 @@ kiwisolver==1.4.4
 libmagic==1.0
 llvmlite==0.39.1
 MarkupSafe @ file:///C:/ci/markupsafe_1654508036328/work
-matplotlib==3.5.2
+matplotlib==3.6.2
 matplotlib-inline==0.1.3
 mistune==2.0.4
 mkl-fft==1.3.1
