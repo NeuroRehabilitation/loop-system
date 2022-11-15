@@ -68,7 +68,7 @@ nbclient==0.6.6
 nbconvert==7.2.4
 nbformat==5.4.0
 nest-asyncio==1.5.5
-neurokit2==0.2.0
+neurokit2==0.2.1
 notebook==6.4.12
 numba==0.56.3
 numpy @ file:///C:/b/abs_53f_dbvhzc/croot/numpy_and_numpy_base_1665773185489/work
