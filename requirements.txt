@@ -83,7 +83,7 @@ pathspec==0.9.0
 pickleshare==0.7.5
 Pillow==9.2.0
 pkginfo @ file:///tmp/build/80754af9/pkginfo_1643162084911/work
-platformdirs==2.5.2
+platformdirs==2.5.4
 prometheus-client==0.14.1
 prompt-toolkit==3.0.30
 psutil==5.9.1
