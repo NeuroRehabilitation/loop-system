@@ -140,7 +140,7 @@ stack-data==0.3.0
 suds-jurko==0.6
 terminado==0.15.0
 threadpoolctl==3.1.0
-tinycss2==1.1.1
+tinycss2==1.2.1
 tk==0.1.0
 toml==0.10.2
 tomli==2.0.1
