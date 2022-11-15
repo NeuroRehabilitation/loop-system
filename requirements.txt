@@ -34,7 +34,7 @@ docutils @ file:///C:/Windows/Temp/abs_b6cq4adtko/croots/recipe/docutils_1659506
 entrypoints==0.4
 executing==0.9.0
 fastjsonschema==2.16.1
-fonttools==4.34.4
+fonttools==4.38.0
 future @ file:///C:/ci_310/future_1642081234309/work
 h5py==3.7.0
 idna @ file:///tmp/build/80754af9/idna_1637925883363/work
