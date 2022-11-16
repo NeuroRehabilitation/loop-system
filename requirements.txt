@@ -138,7 +138,7 @@ sphinxcontrib-qthelp==1.0.3
 sphinxcontrib-serializinghtml==1.1.5
 stack-data==0.6.1
 suds-jurko==0.6
-terminado==0.15.0
+terminado==0.17.0
 threadpoolctl==3.1.0
 tinycss2==1.2.1
 tk==0.1.0
