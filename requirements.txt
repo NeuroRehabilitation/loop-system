@@ -1,87 +1,87 @@
 alabaster @ file:///home/ktietz/src/ci/alabaster_1611921544520/work
-appdirs==1.4.3
+appdirs==1.4.4
 argon2-cffi==21.3.0
 argon2-cffi-bindings==21.2.0
 asttokens==2.1.0
 atomicwrites @ file:///Users/ktietz/demo/mc3/conda-bld/atomicwrites_1630511751522/work
-attrs==21.4.0
-autopep8==1.4.4
+attrs==22.1.0
+autopep8==2.0.0
 Babel @ file:///tmp/build/80754af9/babel_1620871417480/work
 backcall==0.2.0
 beautifulsoup4==4.11.1
 bidict==0.22.0
 biosignalsnotebooks==0.6.9
 biosppy==1.0.0
-black==21.4b2
+black==22.10.0
 bleach==5.0.1
-blinker==1.4
-bokeh==2.4.3
+blinker==1.5
+bokeh==3.0.2
 brotlipy==0.7.0
 certifi @ file:///C:/b/abs_ac29jvt43w/croot/certifi_1665076682579/work/certifi
 cffi @ file:///C:/Windows/Temp/abs_6808y9x40v/croots/recipe/cffi_1659598653989/work
 charset-normalizer @ file:///tmp/build/80754af9/charset-normalizer_1630003229654/work
 click==8.1.3
 cmarkgfm @ file:///C:/ci_310/cmarkgfm_1642108802684/work
-colorama==0.4.5
+colorama==0.4.6
 configobj==5.0.6
 cryptography @ file:///C:/ci/cryptography_1652101729823/work
 cycler==0.11.0
 DateTime==4.7
-debugpy==1.6.2
+debugpy==1.6.3
 decorator==5.1.1
 defusedxml==0.7.1
 docutils @ file:///C:/Windows/Temp/abs_b6cq4adtko/croots/recipe/docutils_1659506292265/work
 entrypoints==0.4
-executing==0.9.0
-fastjsonschema==2.16.1
+executing==1.2.0
+fastjsonschema==2.16.2
 fonttools==4.38.0
 future @ file:///C:/ci_310/future_1642081234309/work
 h5py==3.7.0
 idna @ file:///tmp/build/80754af9/idna_1637925883363/work
-imagesize==1.1.0
-ipykernel==6.15.1
-ipython==8.4.0
+imagesize==1.4.1
+ipykernel==6.17.1
+ipython==8.6.0
 ipython-genutils==0.2.0
 ipywidgets==8.0.2
 jedi==0.18.1
 Jinja2==3.1.2
 joblib==1.2.0
-jsonschema==4.7.2
+jsonschema==4.17.0
 jupyter==1.0.0
-jupyter-client==7.3.4
+jupyter-client==7.4.6
 jupyter-console==6.4.4
 jupyter-core==5.0.0
 jupyterlab-pygments==0.2.2
-jupyterlab-widgets==1.1.1
+jupyterlab-widgets==3.0.3
 kiwisolver==1.4.4
 libmagic==1.0
 llvmlite==0.39.1
 MarkupSafe @ file:///C:/ci/markupsafe_1654508036328/work
-matplotlib==3.5.2
-matplotlib-inline==0.1.3
+matplotlib==3.6.2
+matplotlib-inline==0.1.6
 mistune==2.0.4
 mkl-fft==1.3.1
 mkl-random @ file:///C:/ci_310/mkl_random_1643050563308/work
 mkl-service==2.4.0
 mypy-extensions==0.4.3
-nbclient==0.6.6
-nbconvert==7.2.4
-nbformat==5.4.0
+nbclient==0.7.0
+nbconvert==7.2.5
+nbformat==5.7.0
 nest-asyncio==1.5.5
-neurokit2==0.2.1
+neurokit2==0.2.2
 notebook==6.5.2
 numba==0.56.4
 numpy @ file:///C:/b/abs_53f_dbvhzc/croot/numpy_and_numpy_base_1665773185489/work
 oauthlib==3.2.2
 opencv-python==4.6.0.66
 packaging==21.3
-pandas==1.4.3
+pandas==1.5.1
 pandocfilters==1.5.0
 parso==0.8.3
 pathlib @ file:///Users/ktietz/demo/mc3/conda-bld/pathlib_1629713961906/work
-pathspec==0.9.0
+pathspec==0.10.2
 pickleshare==0.7.5
-Pillow==9.2.0
+Pillow==9.3.0
 pkginfo @ file:///tmp/build/80754af9/pkginfo_1643162084911/work
 platformdirs==2.5.4
 prometheus-client==0.14.1
@@ -93,7 +93,7 @@ pyasn1 @ file:///Users/ktietz/demo/mc3/conda-bld/pyasn1_1629708007385/work
 pyasn1-modules==0.2.8
 pycodestyle @ file:///tmp/build/80754af9/pycodestyle_1636635402688/work
 pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
-Pygments==2.12.0
+Pygments==2.13.0
 PyJWT @ file:///C:/ci/pyjwt_1657529477795/work
 pylsl==1.16.0
 pyOpenSSL @ file:///opt/conda/conda-bld/pyopenssl_1643788558760/work
@@ -102,58 +102,58 @@ PyQt5==5.15.7
 PyQt5-Qt5==5.15.2
 PyQt5-sip==12.11.0
 pyqtgraph @ file:///C:/Windows/TEMP/abs_e3uugnjl26/croots/recipe/pyqtgraph_1659341135432/work
-pyrsistent==0.18.1
+pyrsistent==0.19.2
 pyserial @ file:///tmp/build/80754af9/pyserial_1594419199743/work
 PySocks @ file:///C:/ci_310/pysocks_1642089375450/work
 pyte @ file:///Users/ktietz/demo/mc3/conda-bld/pyte_1629482083809/work
 python-dateutil==2.8.2
 python-magic-bin==0.4.14
 pytz @ file:///C:/Windows/TEMP/abs_90eacd4e-8eff-491e-b26e-f707eba2cbe1ujvbhqz1/croots/recipe/pytz_1654762631027/work
-pywin32==304
-pywinpty==2.0.6
+pywin32==305
+pywinpty==2.0.9
 pyxdf==1.16.3
 PyYAML==6.0
-pyzmq==23.2.0
-qtconsole==5.3.1
-QtPy==2.1.0
+pyzmq==24.0.1
+qtconsole==5.4.0
+QtPy==2.3.0
 readme-renderer @ file:///C:/ci_310/readme_renderer_1642120771396/work
-regex==2022.7.25
+regex==2022.10.31
 requests @ file:///C:/ci/requests_1657735340829/work
-requests-oauthlib==1.3.0
+requests-oauthlib==1.3.1
 requests-toolbelt @ file:///Users/ktietz/demo/mc3/conda-bld/requests-toolbelt_1629456163440/work
 rsa @ file:///tmp/build/80754af9/rsa_1596998415516/work
 scikit-learn==1.1.3
-scipy==1.8.1
+scipy==1.9.3
 Send2Trash==1.8.0
 shortuuid==1.0.11
 six @ file:///tmp/build/80754af9/six_1644875935023/work
 snowballstemmer==2.2.0
 soupsieve==2.3.2.post1
 Sphinx==2.3.1
-sphinxcontrib-applehelp==1.0.1
-sphinxcontrib-devhelp==1.0.1
-sphinxcontrib-htmlhelp==1.0.2
+sphinxcontrib-applehelp==1.0.2
+sphinxcontrib-devhelp==1.0.2
+sphinxcontrib-htmlhelp==2.0.0
 sphinxcontrib-jsmath @ file:///home/ktietz/src/ci/sphinxcontrib-jsmath_1611920942228/work
-sphinxcontrib-qthelp==1.0.2
-sphinxcontrib-serializinghtml==1.1.3
-stack-data==0.3.0
+sphinxcontrib-qthelp==1.0.3
+sphinxcontrib-serializinghtml==1.1.5
+stack-data==0.6.1
 suds-jurko==0.6
-terminado==0.15.0
+terminado==0.17.0
 threadpoolctl==3.1.0
-tinycss2==1.1.1
+tinycss2==1.2.1
 tk==0.1.0
 toml==0.10.2
 tomli==2.0.1
 tornado==6.2
 tqdm @ file:///C:/ci/tqdm_1650618044857/work
-traitlets==5.3.0
-twine==1.13.0
+traitlets==5.5.0
+twine==4.0.1
 typing_extensions==4.4.0
 urllib3 @ file:///C:/Windows/TEMP/abs_65ynz4fdmi/croots/recipe/urllib3_1659110473919/work
 wcwidth @ file:///Users/ktietz/demo/mc3/conda-bld/wcwidth_1629357192024/work
 webencodings==0.5.1
 wget==3.2
-widgetsnbextension==3.6.1
+widgetsnbextension==4.0.3
 win-inet-pton @ file:///C:/ci_310/win_inet_pton_1642658466512/work
 wincertstore==0.2
 zope.interface==5.5.1
