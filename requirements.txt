@@ -153,7 +153,7 @@ urllib3 @ file:///C:/Windows/TEMP/abs_65ynz4fdmi/croots/recipe/urllib3_165911047
 wcwidth @ file:///Users/ktietz/demo/mc3/conda-bld/wcwidth_1629357192024/work
 webencodings==0.5.1
 wget==3.2
-widgetsnbextension==3.6.1
+widgetsnbextension==4.0.3
 win-inet-pton @ file:///C:/ci_310/win_inet_pton_1642658466512/work
 wincertstore==0.2
 zope.interface==5.5.1
