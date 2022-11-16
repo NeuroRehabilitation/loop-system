@@ -86,7 +86,7 @@ pkginfo @ file:///tmp/build/80754af9/pkginfo_1643162084911/work
 platformdirs==2.5.4
 prometheus-client==0.15.0
 prompt-toolkit==3.0.30
-psutil==5.9.1
+psutil==5.9.4
 pure-eval==0.2.2
 py @ file:///opt/conda/conda-bld/py_1644396412707/work
 pyasn1 @ file:///Users/ktietz/demo/mc3/conda-bld/pyasn1_1629708007385/work
