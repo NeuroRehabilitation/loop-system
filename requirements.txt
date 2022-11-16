@@ -115,7 +115,7 @@ pyxdf==1.16.3
 PyYAML==6.0
 pyzmq==24.0.1
 qtconsole==5.4.0
-QtPy==2.1.0
+QtPy==2.3.0
 readme-renderer @ file:///C:/ci_310/readme_renderer_1642120771396/work
 regex==2022.10.31
 requests @ file:///C:/ci/requests_1657735340829/work
