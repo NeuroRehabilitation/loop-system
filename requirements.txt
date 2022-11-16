@@ -1,5 +1,5 @@
 alabaster @ file:///home/ktietz/src/ci/alabaster_1611921544520/work
-appdirs==1.4.3
+appdirs==1.4.4
 argon2-cffi==21.3.0
 argon2-cffi-bindings==21.2.0
 asttokens==2.1.0
