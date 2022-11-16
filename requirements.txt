@@ -81,7 +81,7 @@ parso==0.8.3
 pathlib @ file:///Users/ktietz/demo/mc3/conda-bld/pathlib_1629713961906/work
 pathspec==0.9.0
 pickleshare==0.7.5
-Pillow==9.2.0
+Pillow==9.3.0
 pkginfo @ file:///tmp/build/80754af9/pkginfo_1643162084911/work
 platformdirs==2.5.4
 prometheus-client==0.14.1
