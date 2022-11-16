@@ -130,7 +130,7 @@ six @ file:///tmp/build/80754af9/six_1644875935023/work
 snowballstemmer==2.2.0
 soupsieve==2.3.2.post1
 Sphinx==2.3.1
-sphinxcontrib-applehelp==1.0.1
+sphinxcontrib-applehelp==1.0.2
 sphinxcontrib-devhelp==1.0.2
 sphinxcontrib-htmlhelp==2.0.0
 sphinxcontrib-jsmath @ file:///home/ktietz/src/ci/sphinxcontrib-jsmath_1611920942228/work
