@@ -127,7 +127,7 @@ scipy==1.8.1
 Send2Trash==1.8.0
 shortuuid==1.0.11
 six @ file:///tmp/build/80754af9/six_1644875935023/work
-snowballstemmer==1.9.1
+snowballstemmer==2.2.0
 soupsieve==2.3.2.post1
 Sphinx==2.3.1
 sphinxcontrib-applehelp==1.0.1
