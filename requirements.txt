@@ -4,7 +4,7 @@ argon2-cffi==21.3.0
 argon2-cffi-bindings==21.2.0
 asttokens==2.1.0
 atomicwrites @ file:///Users/ktietz/demo/mc3/conda-bld/atomicwrites_1630511751522/work
-attrs==21.4.0
+attrs==22.1.0
 autopep8==1.4.4
 Babel @ file:///tmp/build/80754af9/babel_1620871417480/work
 backcall==0.2.0
