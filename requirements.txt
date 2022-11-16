@@ -12,7 +12,7 @@ beautifulsoup4==4.11.1
 bidict==0.22.0
 biosignalsnotebooks==0.6.9
 biosppy==1.0.0
-black==21.4b2
+black==22.10.0
 bleach==5.0.1
 blinker==1.5
 bokeh==3.0.2
