@@ -33,7 +33,7 @@ defusedxml==0.7.1
 docutils @ file:///C:/Windows/Temp/abs_b6cq4adtko/croots/recipe/docutils_1659506292265/work
 entrypoints==0.4
 executing==1.2.0
-fastjsonschema==2.16.1
+fastjsonschema==2.16.2
 fonttools==4.38.0
 future @ file:///C:/ci_310/future_1642081234309/work
 h5py==3.7.0
