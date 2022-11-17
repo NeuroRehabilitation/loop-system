@@ -5,17 +5,27 @@ import sys, signal
 
 
 class ReceiveStreams(multiprocessing.Process):
+    """ """
+
     def __init__(self):
         super().__init__()
+        # List of names,information and inlet of the streams
         (
             self.stream_names,
             self.streams_inlet,
             self.streams_info,
         ) = ([], [], [])
+
+        # data_queue - Queue to put the data to send to Sync
+        # info_queue - Queue to put the information of the streams to send to Sync
         self.data_queue = multiprocessing.Queue()
         self.info_queue = multiprocessing.Queue()
 
     def availableStreams(self) -> list:
+        """
+        :return: list with names of the available streams
+        :rtype: list
+        """
 
         streams = resolve_streams()
 
@@ -24,7 +34,14 @@ class ReceiveStreams(multiprocessing.Process):
 
         return self.stream_names
 
-    def startProcess(self, name):
+    def startProcess(self, name: str):
+        """
+
+        :param name: name of the stream
+        :type name: str
+        :return: stream and inlet_info
+        :rtype: Stream, list
+        """
 
         stream = Streams(name, self.data_queue)
         inlet = stream.getInlet()
@@ -46,8 +63,10 @@ class ReceiveStreams(multiprocessing.Process):
 
     def run(self) -> None:
 
+        # Get the names of the streams available
         self.stream_names = self.availableStreams()
 
+        # For each stream available start the process of the stream and put the information in the info_queue
         for name in self.stream_names:
             stream, inlet_info = self.startProcess(name)
             self.streams_info.append(inlet_info)

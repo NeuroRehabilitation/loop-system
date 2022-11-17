@@ -26,7 +26,7 @@ class Processing:
                             poincare_features,
                             frequency_features,
                         )
-                    if key.startswith("EDA"):
+                    elif key.startswith("EDA"):
                         sensor = EDA(self.data["OpenSignals"][key], fs, 16)
                         (
                             eda_phasic_dict,
@@ -45,7 +45,7 @@ class Processing:
                             SCR_RecoveryTime_dict,
                             frequency_features,
                         )
-                    if key.startswith("RESP"):
+                    elif key.startswith("RESP"):
                         sensor = RESP(self.data["OpenSignals"][key], fs, 16)
                         signals, info = sensor.process_RESP()
                         rrv = sensor.RESP_RRV(signals)
@@ -64,7 +64,7 @@ class Processing:
                         )
                         print("RESP")
                         print(df)
-                    if key.startswith("TEMP"):
+                    elif key.startswith("TEMP"):
                         sensor = TEMP(self.data["OpenSignals"][key], fs, 16)
                         temp = sensor.getFeatures()
                         print(temp)

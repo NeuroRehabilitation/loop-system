@@ -1,5 +1,3 @@
-from PyQt5.QtWidgets import QStyleFactory
-
 from ReceiveStreams import *
 from Plot import *
 
@@ -7,21 +5,37 @@ from Plot import *
 class Sync(multiprocessing.Process):
     def __init__(self, buffer_window: int) -> None:
         """
-        :param buffer_window: time of the window to fill with buffers of data;
+        :param buffer_window: time of the window to fill with buffers of data in seconds;
         :type buffer_window: int
         """
 
         super().__init__()
+
+        # info_queue - Queue with the information of the streams
+        # buffer_queue - Queue with each buffer of data to send to Manager.py
+        # data_queue - Queue with the data of the streams from ReceiveStreams.py
         self.data_queue, self.buffer_queue, self.info_queue = (
             multiprocessing.Queue(),
             multiprocessing.Queue(),
             multiprocessing.Queue(),
         )
+
+        # List with the stream info
         self.streams_info = []
+
+        # Dictionaries to organize the data of all the streams
         self.synced_dict, self.info_dict, self.timestamps = {}, {}, {}
+
+        # Flag to check if buffers are synced, if it is the first buffer of data
         self.isSync, self.isFirstBuffer = False, True
+
+        # Flag to start the acquisition of data by the Manager.
         self.startAcquisition = multiprocessing.Value("i", 0)
+
+        # Number of full buffers from all the streams
         self.n_full_buffers = 0
+
+        # Buffer window in seconds
         self.buffer_window = buffer_window
 
     def getStreams(self):
@@ -190,7 +204,7 @@ class Sync(multiprocessing.Process):
             self.info_dict[stream["Name"]]["Number full arrays"] = 0
 
         # Try to visualize the data
-        app = QApplication(sys.argv)
+        app = QApplication(sys.argv).instance()
         widget = Main()
         worker = Worker()
         widget.make_connection(worker)
@@ -206,10 +220,11 @@ class Sync(multiprocessing.Process):
             else:
                 # If data is synced, get the data from the queue and fill the buffers with data
                 stream_name, data = streams_receiver.data_queue.get()
+                self.getBuffers(data, stream_name)
+
+                # Thread for real-time plot
                 worker.data = data[0][1]
                 worker.start()
-                # print(worker.data)
-                self.getBuffers(data, stream_name)
 
         # Stop all running child processes
         streams_receiver.stopChildProcesses()
