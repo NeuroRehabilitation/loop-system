@@ -204,10 +204,10 @@ class Sync(multiprocessing.Process):
             self.info_dict[stream["Name"]]["Number full arrays"] = 0
 
         # Try to visualize the data
-        app = QApplication(sys.argv).instance()
-        widget = Main()
-        worker = Worker()
-        widget.make_connection(worker)
+        # app = QApplication(sys.argv).instance()
+        # widget = Main()
+        # worker = Worker()
+        # widget.make_connection(worker)
 
         # Loop to receive the data - start acquisition is true
         while bool(self.startAcquisition.value):
@@ -223,11 +223,11 @@ class Sync(multiprocessing.Process):
                 self.getBuffers(data, stream_name)
 
                 # Thread for real-time plot
-                worker.data = data[0][1]
-                worker.start()
+                # worker.data = data[0][1]
+                # worker.start()
 
         # Stop all running child processes
         streams_receiver.stopChildProcesses()
         streams_receiver.terminate()
         streams_receiver.join()
-        sys.exit(app.exec_())
+        # sys.exit(app.exec_())
