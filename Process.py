@@ -1,4 +1,5 @@
 from lib.sensors import *
+from Process_Features import *
 
 
 class Processing:
@@ -9,65 +10,24 @@ class Processing:
     def getOpenSignals(self):
         for stream in self.info:
             if stream["Name"] == "OpenSignals":
+                name = stream["Name"]
                 fs = stream["Sampling Rate"]
-                for key in self.data["OpenSignals"].keys():
+                for key in self.data[name].keys():
                     if key.startswith("ECG"):
-                        sensor = HRV(self.data["OpenSignals"][key], fs, 16)
-                        (
-                            heart_rate_features,
-                            time_features,
-                            poincare_features,
-                            frequency_features,
-                        ) = sensor.getFeatures()
-                        print("ECG")
-                        print(
-                            heart_rate_features,
-                            time_features,
-                            poincare_features,
-                            frequency_features,
-                        )
+                        HRV_Dataframe = Process_HRV(self.data[name][key], fs, 16)
+                        print(HRV_Dataframe)
+
                     elif key.startswith("EDA"):
-                        sensor = EDA(self.data["OpenSignals"][key], fs, 16)
-                        (
-                            eda_phasic_dict,
-                            eda_tonic_dict,
-                            SCR_Amplitude_dict,
-                            SCR_RiseTime_dict,
-                            SCR_RecoveryTime_dict,
-                            frequency_features,
-                        ) = sensor.getFeatures()
-                        print("EDA")
-                        print(
-                            eda_phasic_dict,
-                            eda_tonic_dict,
-                            SCR_Amplitude_dict,
-                            SCR_RiseTime_dict,
-                            SCR_RecoveryTime_dict,
-                            frequency_features,
-                        )
+                        EDA_Dataframe = Process_EDA(self.data[name][key], fs, 16)
+                        print(EDA_Dataframe)
+
                     elif key.startswith("RESP"):
-                        sensor = RESP(self.data["OpenSignals"][key], fs, 16)
-                        signals, info = sensor.process_RESP()
-                        rrv = sensor.RESP_RRV(signals)
-                        df = sensor.getFeatures(signals, rrv)
-                        df = df.drop(
-                            [
-                                "RRV_VLF",
-                                "RRV_LF",
-                                "RRV_LFHF",
-                                "RRV_LFn",
-                                "RRV_HFn",
-                                "RRV_SD2",
-                                "RRV_SD2SD1",
-                            ],
-                            axis=1,
-                        )
-                        print("RESP")
-                        print(df)
+                        RESP_Dataframe = Process_RESP(self.data[name][key], fs, 16)
+                        print(RESP_Dataframe)
+
                     elif key.startswith("TEMP"):
-                        sensor = TEMP(self.data["OpenSignals"][key], fs, 16)
-                        temp = sensor.getFeatures()
-                        print(temp)
+                        SKT_Dataframe = Process_TEMP(self.data[name][key], fs, 16)
+                        print(SKT_Dataframe)
 
     def getOpenvibe(self):
         for stream in self.info:
@@ -79,7 +39,9 @@ class Processing:
                         channel = "EEG" + str(i)
                         sensor = EEG(self.data["openvibeSignal"][key], fs, 16)
                         EEG_dict[channel] = sensor.getFeatures()
-                print(EEG_dict)
+
+        EEG_Dataframe = pd.DataFrame.from_dict(EEG_dict, orient="index")
+        print(EEG_Dataframe)
 
     def processData(self):
         if "OpenSignals" in self.data.keys():
