@@ -51,8 +51,6 @@ class Processing:
                 # print("Features")
                 # print(self.features)
 
-        return self.features
-
     def getOpenvibe(self):
         for stream in self.info:
             if stream["Name"] == "openvibeSignal":
@@ -64,11 +62,12 @@ class Processing:
                         sensor = EEG(self.data["openvibeSignal"][key], fs, 16)
                         EEG_dict[channel] = sensor.getFeatures()
 
-        EEG_Dataframe = pd.DataFrame.from_dict(EEG_dict, orient="index")
-        print(EEG_Dataframe)
+                EEG_Dataframe = pd.DataFrame.from_dict(EEG_dict, orient="index")
+                print(EEG_Dataframe)
+                self.features = pd.concat([self.features, EEG_Dataframe], axis=1)
 
     def processData(self):
         if "OpenSignals" in self.data.keys():
-            self.features = self.getOpenSignals()
+            self.getOpenSignals()
         if "openvibeSignal" in self.data.keys():
             self.getOpenvibe()
