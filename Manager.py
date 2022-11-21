@@ -8,7 +8,7 @@ import time
 class Manager:
     def run(self):
         # Instantiate object from class Sync and Processing
-        sync = Sync(buffer_window=15)
+        sync = Sync(buffer_window=30)
         process = Processing()
 
         # Start process Sync and put flag startAcquisition as True
@@ -30,7 +30,7 @@ class Manager:
             # If there is data in the buffer queue from Sync, send to Process.
             if sync.buffer_queue.qsize() > 0:
                 process.data = sync.buffer_queue.get()
-                process.processData()
+                process.features = process.processData()
 
             # Set end of acquisition in seconds and put flag startAcquisition as False.
             if elapsed_time >= 120:
