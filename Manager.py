@@ -1,5 +1,3 @@
-import multiprocessing
-
 from Sync import *
 from Process import *
 import time
@@ -31,6 +29,7 @@ class Manager:
             if sync.buffer_queue.qsize() > 0:
                 process.data = sync.buffer_queue.get()
                 process.features = process.processData()
+                print(process.features)
 
             # Set end of acquisition in seconds and put flag startAcquisition as False.
             if elapsed_time >= 120:
