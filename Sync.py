@@ -147,7 +147,7 @@ class Sync(multiprocessing.Process):
             if all(i >= first_timestamp for i in self.timestamps.values()):
                 self.isSync = True
                 print("Streams are Synced.")
-                print(first_timestamp)
+                # print(first_timestamp)
 
     def getBuffers(self, data: tuple, stream_name: str) -> None:
         """
