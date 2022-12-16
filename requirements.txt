@@ -152,7 +152,7 @@ toml==0.10.2
 tomli==2.0.1
 tornado @ file:///C:/ci/tornado_1662476985533/work
 tqdm @ file:///C:/ci/tqdm_1650618044857/work
-traitlets==5.7.0
+traitlets==5.7.1
 twine==4.0.2
 typing_extensions==4.4.0
 urllib3 @ file:///C:/Windows/TEMP/abs_65ynz4fdmi/croots/recipe/urllib3_1659110473919/work
