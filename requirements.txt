@@ -6,12 +6,12 @@ argon2-cffi-bindings @ file:///C:/ci/argon2-cffi-bindings_1644569876605/work
 asttokens @ file:///opt/conda/conda-bld/asttokens_1646925590279/work
 atomicwrites @ file:///Users/ktietz/demo/mc3/conda-bld/atomicwrites_1630511751522/work
 attrs==22.1.0
-autopep8==2.0.0
+autopep8==2.0.1
 Babel @ file:///tmp/build/80754af9/babel_1620871417480/work
 backcall @ file:///home/ktietz/src/ci/backcall_1611930011877/work
 beautifulsoup4 @ file:///C:/ci/beautifulsoup4_1650293028159/work
 bidict==0.22.0
-biosignalsnotebooks==0.6.9
+biosignalsnotebooks==0.6.10
 biosppy==1.0.0
 black==22.12.0
 bleach==5.0.1
@@ -69,7 +69,7 @@ mkl-service==2.4.0
 mypy-extensions==0.4.3
 nbclassic @ file:///C:/b/abs_26e3fkk516/croot/nbclassic_1668174974037/work
 nbclient==0.7.2
-nbconvert==7.2.6
+nbconvert==7.2.7
 nbformat @ file:///C:/b/abs_1dw90o2uqb/croots/recipe/nbformat_1663744957967/work
 nest-asyncio @ file:///C:/ci/nest-asyncio_1649848132512/work
 neurokit2==0.2.2
@@ -152,7 +152,7 @@ toml==0.10.2
 tomli==2.0.1
 tornado @ file:///C:/ci/tornado_1662476985533/work
 tqdm @ file:///C:/ci/tqdm_1650618044857/work
-traitlets==5.7.0
+traitlets==5.8.0
 twine==4.0.2
 typing_extensions==4.4.0
 urllib3 @ file:///C:/Windows/TEMP/abs_65ynz4fdmi/croots/recipe/urllib3_1659110473919/work
