@@ -37,7 +37,7 @@ executing==1.2.0
 fastjsonschema @ file:///C:/Users/BUILDE~1/AppData/Local/Temp/abs_ebruxzvd08/croots/recipe/python-fastjsonschema_1661376484940/work
 fonttools==4.38.0
 future @ file:///C:/ci_310/future_1642081234309/work
-h5py==3.7.0
+h5py==3.8.0
 idna @ file:///tmp/build/80754af9/idna_1637925883363/work
 imagesize @ file:///C:/Windows/TEMP/abs_3cecd249-3fc4-4bfc-b80b-bb227b0d701en12vqzot/croots/recipe/imagesize_1657179501304/work
 ipykernel @ file:///C:/b/abs_21ykzkm7y_/croots/recipe/ipykernel_1662361803478/work
