@@ -62,7 +62,6 @@ class ReceiveStreams(multiprocessing.Process):
             child.join()
 
     def run(self) -> None:
-
         # Get the names of the streams available
         self.stream_names = self.availableStreams()
 

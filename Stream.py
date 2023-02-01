@@ -10,7 +10,6 @@ class Streams(multiprocessing.Process):
         self.data_queue = data_queue
 
     def getInlet(self):
-
         stream = resolve_stream("name", self.name)
 
         if len(stream) > 0:
@@ -25,7 +24,6 @@ class Streams(multiprocessing.Process):
         return int(inlet.info().channel_count())
 
     def getChannelsInfo(self, inlet):
-
         stream_channels = dict()
         channels = inlet.info().desc().child("channels").child("channel")
 
@@ -60,7 +58,6 @@ class Streams(multiprocessing.Process):
         return inlet_info
 
     def run(self):
-
         inlet = self.getInlet()
         inlet_info = self.getInletInfo(inlet)
 

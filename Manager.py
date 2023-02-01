@@ -21,7 +21,6 @@ class Manager:
 
         # While is acquiring data
         while bool(sync.startAcquisition.value):
-
             # Update timer
             elapsed_time = time.perf_counter() - start_time
 
