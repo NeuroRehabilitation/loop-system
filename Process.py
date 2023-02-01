@@ -75,7 +75,6 @@ class Processing:
         return self.features
 
     def processData(self):
-
         self.features = pd.DataFrame()
 
         if "OpenSignals" in self.data.keys():
