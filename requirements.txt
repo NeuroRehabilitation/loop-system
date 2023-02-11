@@ -103,7 +103,7 @@ PyJWT @ file:///C:/ci/pyjwt_1657529477795/work
 pylsl==1.16.0
 pyOpenSSL @ file:///opt/conda/conda-bld/pyopenssl_1643788558760/work
 pyparsing==3.0.9
-PyQt5==5.15.8
+PyQt5==5.15.9
 PyQt5-Qt5==5.15.2
 PyQt5-sip==12.11.1
 pyqtgraph @ file:///C:/Windows/TEMP/abs_e3uugnjl26/croots/recipe/pyqtgraph_1659341135432/work
