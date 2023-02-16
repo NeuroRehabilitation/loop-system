@@ -100,7 +100,7 @@ pycodestyle @ file:///tmp/build/80754af9/pycodestyle_1636635402688/work
 pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
 Pygments==2.14.0
 PyJWT @ file:///C:/ci/pyjwt_1657529477795/work
-pylsl==1.16.0
+pylsl==1.16.1
 pyOpenSSL @ file:///opt/conda/conda-bld/pyopenssl_1643788558760/work
 pyparsing==3.0.9
 PyQt5==5.15.9
