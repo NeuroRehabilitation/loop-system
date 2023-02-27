@@ -1,5 +1,10 @@
+import multiprocessing
+
 from ReceiveStreams import *
 from Plot import *
+import time
+import random
+import main
 
 
 class Sync(multiprocessing.Process):
@@ -185,7 +190,26 @@ class Sync(multiprocessing.Process):
                 self.fillData(data, stream_name)
                 self.buffer_queue.put(self.synced_dict)
 
+    def fill_any(self, i):
+        fill_var = []
+        while len(fill_var) < i:
+            fill_var.append(0)
+        return fill_var
+
+    def SendData_To_Display(self, q, data):
+        q.put(data)
+        # print("DATA SENT : ", data, ".\n")
+        time.sleep(0.01)
+
     def run(self):
+
+        q = multiprocessing.Queue()
+        data_stream = self.fill_any(10000)
+        q.put(data_stream)
+
+        # p2 = multiprocessing.Process(target=main.Run, args=(q,))
+        # p2.start()
+
         # Start all the available streams
         streams_receiver = self.getStreams()
 
@@ -203,12 +227,6 @@ class Sync(multiprocessing.Process):
             )
             self.info_dict[stream["Name"]]["Number full arrays"] = 0
 
-        # Try to visualize the data
-        # app = QApplication(sys.argv).instance()
-        # widget = Main()
-        # worker = Worker()
-        # widget.make_connection(worker)
-
         # Loop to receive the data - start acquisition is true
         while bool(self.startAcquisition.value):
             # If data is not synced, retrieve data from the queue but don't use it
@@ -221,13 +239,12 @@ class Sync(multiprocessing.Process):
                 # If data is synced, get the data from the queue and fill the buffers with data
                 stream_name, data = streams_receiver.data_queue.get()
                 self.getBuffers(data, stream_name)
-
-                # Thread for real-time plot
-                # worker.data = data[0][1]
-                # worker.start()
+                print(data)
+                data_stream.pop(0)
+                data_stream.append(data[0][1])
+                self.SendData_To_Display(q, data_stream)
 
         # Stop all running child processes
         streams_receiver.stopChildProcesses()
         streams_receiver.terminate()
         streams_receiver.join()
-        # sys.exit(app.exec_())
