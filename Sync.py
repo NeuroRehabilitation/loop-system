@@ -202,7 +202,6 @@ class Sync(multiprocessing.Process):
         time.sleep(0.01)
 
     def run(self):
-
         q = multiprocessing.Queue()
         data_stream = self.fill_any(10000)
         q.put(data_stream)
