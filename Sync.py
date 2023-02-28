@@ -1,10 +1,12 @@
 import multiprocessing
 
 from ReceiveStreams import *
-from Plot import *
+
+# from Plot import *
 import time
 import random
-import main
+
+# import main
 
 
 class Sync(multiprocessing.Process):
