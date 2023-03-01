@@ -171,20 +171,19 @@ def getEEGDataframe(features_epochs_EEG: dict):
 @staticmethod
 def getSignalsDataframe(features_epochs: dict):
 
-    category, video = [], []
+    category, videos = [], []
 
     for key in features_epochs.keys():
         user = key
-    videos = list(features_epochs[user].keys())
-    df = pd.DataFrame(columns=features_epochs[user][videos[0]].columns)
+    video = list(features_epochs[user].keys())
+    df = pd.DataFrame(columns=features_epochs[user][video[0]].columns)
     for users in features_epochs.keys():
-        for videos in features_epochs[users].keys():
-            if videos != "baseline":
-                df = df.append(features_epochs[users][videos])
-                category.append(videos.split("/")[0])
-                video.append(videos)
-                user.append(users)
+        for epoch in features_epochs[users].keys():
+            if epoch != "baseline":
+                df = pd.concat([df, features_epochs[users][epoch]], ignore_index=True)
+                category.append(epoch.split("/")[0])
+                videos.append(epoch)
     df["Category"] = category
-    df["Video"] = video
+    df["Video"] = videos
 
     return df
