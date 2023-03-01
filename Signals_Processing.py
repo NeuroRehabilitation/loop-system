@@ -3,7 +3,6 @@ from Process_Features import *
 
 @staticmethod
 def filterEEG(data: dict, EEG_fs: int) -> dict:
-
     EEG_filtered = {}
 
     for keys in data.keys():
@@ -27,7 +26,6 @@ def getEEGChannels(EEG_filtered: dict) -> dict:
 
 @staticmethod
 def getEpochs(data: dict, onset_index: dict, events_diff: dict, fs: int) -> dict:
-
     epochs = {}
 
     for users in data.keys():
@@ -44,7 +42,6 @@ def getEpochs(data: dict, onset_index: dict, events_diff: dict, fs: int) -> dict
 
 @staticmethod
 def getVideosDict(epochs: dict, videos: dict) -> dict:
-
     dict = {}
 
     for users in epochs.keys():
@@ -58,7 +55,6 @@ def getVideosDict(epochs: dict, videos: dict) -> dict:
 
 @staticmethod
 def getEEGBands(EEG_dict: dict, EEG_fs: int) -> dict:
-
     features_EEG = {}
 
     for users in EEG_dict.keys():
@@ -78,7 +74,6 @@ def getEEGBands(EEG_dict: dict, EEG_fs: int) -> dict:
 
 @staticmethod
 def getEEGDict(features_EEG: dict) -> dict:
-
     features_epochs_EEG = {}
 
     for user in features_EEG.keys():
@@ -102,7 +97,6 @@ def getEEGDict(features_EEG: dict) -> dict:
 
 @staticmethod
 def getFeatures(data: dict, fs: int, resolution: int) -> dict:
-
     features_signals = {}
 
     for users in data.keys():
@@ -116,7 +110,6 @@ def getFeatures(data: dict, fs: int, resolution: int) -> dict:
 
 @staticmethod
 def getFeaturesEpochs(data: dict) -> dict:
-
     features_epochs = {}
 
     for user in data.keys():
@@ -136,7 +129,6 @@ def getFeaturesEpochs(data: dict) -> dict:
 
 @staticmethod
 def getEEGDataframe(features_epochs_EEG: dict):
-
     columns = list()
     category, video = [], []
 
@@ -170,7 +162,6 @@ def getEEGDataframe(features_epochs_EEG: dict):
 
 @staticmethod
 def getSignalsDataframe(features_epochs: dict):
-
     category, videos = [], []
 
     for key in features_epochs.keys():
