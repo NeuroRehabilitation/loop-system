@@ -24,9 +24,10 @@ os.chdir(path)
     features_epochs_EEG,
 ) = ({}, {}, {}, {}, {}, {}, {}, {}, {}, {})
 
-for root, dirs, files in os.walk(path, ".xdf"):
+for root, dirs, files in os.walk(path):
     for fname in files:
-        users[fname] = Run_files(fname)
+        if fname.endswith(".xdf"):
+            users[fname] = Run_files(fname)
 
 Opensignals_fs = 1000
 EEG_fs = 250
@@ -42,8 +43,11 @@ resolution = 16
     onset_index_EEG,
     offset_index_EEG,
     data,
-) = getEvents(users)
-
+    valence,
+    arousal,
+) = getEvents(users, "PsychoPy Markers", "PsychoPy Ratings")
+print(valence)
+print(arousal)
 """EEG Processing"""
 
 EEG_filtered = filterEEG(data, EEG_fs)
