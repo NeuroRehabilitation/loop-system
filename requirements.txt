@@ -167,4 +167,4 @@ zope.interface==5.5.2
 
 scikit-learn~=1.2.1
 numpy~=1.23.1
-future~=0.18.2
+future~=0.18.3
