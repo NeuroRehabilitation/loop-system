@@ -9,7 +9,7 @@ def filterEEG(data: dict, EEG_fs: int) -> dict:
         temp_dict = {}
         for i in range(1, 33):
             temp_dict["EEG_" + str(i)] = EEG.filterData(
-                EEG.ICA(data[keys][1]["EEG_" + str(i)]), EEG_fs
+                EEG.ICA(data[keys]["EEG"]["EEG_" + str(i)]), EEG_fs
             )
         EEG_filtered[keys] = temp_dict
 
@@ -31,6 +31,21 @@ def getEpochs(data: dict, onset_index: dict, events_diff: dict, fs: int) -> dict
     for users in data.keys():
         epochs[users] = nk.epochs_create(
             data[users],
+            events=onset_index[users],
+            sampling_rate=fs,
+            epochs_start=0,
+            epochs_end=events_diff[users],
+        )
+
+    return epochs
+
+
+def getSignalsEpochs(data: dict, onset_index: dict, events_diff: dict, fs: int) -> dict:
+    epochs = {}
+
+    for users in data.keys():
+        epochs[users] = nk.epochs_create(
+            data[users]["Signals"],
             events=onset_index[users],
             sampling_rate=fs,
             epochs_start=0,
