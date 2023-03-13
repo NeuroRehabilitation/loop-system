@@ -165,5 +165,5 @@ win-inet-pton @ file:///C:/ci_310/win_inet_pton_1642658466512/work
 wincertstore==0.2
 zope.interface==5.5.2
 numpy~=1.24.2
-scikit-learn~=1.2.1
+scikit-learn~=1.2.2
 future~=0.18.3
