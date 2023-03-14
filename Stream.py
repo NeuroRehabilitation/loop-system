@@ -28,8 +28,9 @@ class Streams(multiprocessing.Process):
         channels = inlet.info().desc().child("channels").child("channel")
 
         for i in range(inlet.info().channel_count()):
+
             # Get the channel number (e.g. 1)
-            channel = i
+            channel = i + 1
 
             # Get the channel type (e.g. ECG)
             sensor = channels.child_value("label")

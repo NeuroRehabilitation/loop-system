@@ -9,7 +9,7 @@ import random
 # import main
 
 
-class Sync(multiprocessing.Process):
+class Sync(multiprocessing.Process):  # This should respect SOLID principles!
     def __init__(self, buffer_window: int) -> None:
         """
         :param buffer_window: time of the window to fill with buffers of data in seconds;
@@ -21,7 +21,17 @@ class Sync(multiprocessing.Process):
         # info_queue - Queue with the information of the streams
         # buffer_queue - Queue with each buffer of data to send to Manager.py
         # data_queue - Queue with the data of the streams from ReceiveStreams.py
-        self.data_queue, self.buffer_queue, self.info_queue = (
+        (
+            self.data_queue,
+            self.buffer_queue,
+            self.markers_queue,
+            self.valence_queue,
+            self.arousal_queue,
+            self.info_queue,
+        ) = (
+            multiprocessing.Queue(),
+            multiprocessing.Queue(),
+            multiprocessing.Queue(),
             multiprocessing.Queue(),
             multiprocessing.Queue(),
             multiprocessing.Queue(),
@@ -38,6 +48,7 @@ class Sync(multiprocessing.Process):
 
         # Flag to start the acquisition of data by the Manager.
         self.startAcquisition = multiprocessing.Value("i", 0)
+        self.videoStarted = multiprocessing.Value("i", 0)
 
         # Number of full buffers from all the streams
         self.n_full_buffers = 0
@@ -192,6 +203,15 @@ class Sync(multiprocessing.Process):
                 self.fillData(data, stream_name)
                 self.buffer_queue.put(self.synced_dict)
 
+    def getPsychoPyData(self, data: tuple, stream_name: str) -> None:
+        if "Markers" in stream_name:
+            self.markers_queue.put(data[0])
+        else:
+            if "Arousal" in data[0][0]:
+                self.arousal_queue.put(data[0][1])
+            else:
+                self.valence_queue.put(data[0][1])
+
     def fill_any(self, i):
         fill_var = []
         while len(fill_var) < i:
@@ -221,12 +241,13 @@ class Sync(multiprocessing.Process):
         # For every streams available create and fill the dictionary synced_dict with:
         # Name of the stream, Maximum Size of the buffers, Number of channels filled with data
         for stream in self.streams_info:
-            self.synced_dict[stream["Name"]] = self.createDict(stream)
-            self.info_dict[stream["Name"]] = stream
-            self.info_dict[stream["Name"]]["Max Size"] = self.getBufferMaxSize(
-                stream["Name"]
-            )
-            self.info_dict[stream["Name"]]["Number full arrays"] = 0
+            if "PsychoPy" not in stream["Name"]:
+                self.synced_dict[stream["Name"]] = self.createDict(stream)
+                self.info_dict[stream["Name"]] = stream
+                self.info_dict[stream["Name"]]["Max Size"] = self.getBufferMaxSize(
+                    stream["Name"]
+                )
+                self.info_dict[stream["Name"]]["Number full arrays"] = 0
 
         # Loop to receive the data - start acquisition is true
         while bool(self.startAcquisition.value):
@@ -234,16 +255,24 @@ class Sync(multiprocessing.Process):
             # Synchronize the data
             if not self.isSync:
                 stream_name, data_temp = streams_receiver.data_queue.get()
-                self.getBuffers(data_temp, stream_name)
-                self.syncStreams(first_timestamp)
+                if "PsychoPy" not in stream_name:
+                    self.getBuffers(data_temp, stream_name)
+                    self.syncStreams(first_timestamp)
+                else:
+                    self.getPsychoPyData(data_temp, stream_name)
             else:
                 # If data is synced, get the data from the queue and fill the buffers with data
                 stream_name, data = streams_receiver.data_queue.get()
-                self.getBuffers(data, stream_name)
-                print(data)
-                data_stream.pop(0)
-                data_stream.append(data[0][1])
-                self.SendData_To_Display(q, data_stream)
+                if bool(self.videoStarted.value):
+                    if "PsychoPy" not in stream_name:
+                        print("Get Buffers")
+                        self.getBuffers(data, stream_name)
+                        # print(data)
+                        data_stream.pop(0)
+                        data_stream.append(data[0][1])
+                        self.SendData_To_Display(q, data_stream)
+                    else:
+                        self.getPsychoPyData(data, stream_name)
 
         # Stop all running child processes
         streams_receiver.stopChildProcesses()

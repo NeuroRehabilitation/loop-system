@@ -6,7 +6,7 @@ import time
 class Manager:
     def run(self):
         # Instantiate object from class Sync and Processing
-        sync = Sync(buffer_window=30)
+        sync = Sync(buffer_window=40)
         process = Processing()
 
         # Start process Sync and put flag startAcquisition as True
@@ -23,7 +23,19 @@ class Manager:
         while bool(sync.startAcquisition.value):
             # Update timer
             elapsed_time = time.perf_counter() - start_time
-
+            if sync.markers_queue.qsize() > 0:
+                video, marker = sync.markers_queue.get()
+                print("Video = " + str(video))
+                if video == "end":
+                    sync.startAcquisition.value = 0
+                if video == "start":
+                    sync.videoStarted.value = 1
+            if sync.arousal_queue.qsize() > 0:
+                arousal = sync.arousal_queue.get()
+                print("Arousal = " + str(arousal))
+            if sync.valence_queue.qsize() > 0:
+                valence = sync.valence_queue.get()
+                print("Valence = " + str(valence))
             # If there is data in the buffer queue from Sync, send to Process.
             if sync.buffer_queue.qsize() > 0:
                 process.data = sync.buffer_queue.get()
@@ -31,8 +43,6 @@ class Manager:
                 print(process.features)
 
             # Set end of acquisition in seconds and put flag startAcquisition as False.
-            if elapsed_time >= 120:
-                sync.startAcquisition.value = 0
 
         sync.terminate()
         sync.join()
