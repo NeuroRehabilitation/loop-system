@@ -6,8 +6,8 @@ import pickle
 
 """Load Data from Folder"""
 
-folder = "C://Users//Rodrigo//Desktop//PhD//Study2//Training Models//"
-participant = "P1"
+folder = os.getcwd() + "\Training Models"
+participant = "\P1"
 path = folder + participant
 
 os.chdir(path)
@@ -50,7 +50,7 @@ sensors = ["ECG", "EDA", "RESP", "TEMP", "fnirs1", "fnirs2"]
     users,
     "OpenSignals",
     "openvibeSignal",
-    "PsychoPyStream",
+    "PsychoPy Markers",
     "PsychoPy Ratings",
     sensors,
 )
@@ -78,35 +78,87 @@ dataframe = getSignalsDataframe(features_epochs)
 columns = dataframe.columns[: (len(dataframe.columns) - 2)]
 columns_EEG = dataframe_EEG.columns[: (len(dataframe_EEG.columns) - 2)]
 full_dataframe = pd.concat([dataframe_EEG[columns_EEG], dataframe], axis=1)
+full_dataframe.insert(-1, "Valence Level", valence)
+full_dataframe.insert(-1, "Arousal Level", arousal)
 full_columns = full_dataframe.columns[: (len(full_dataframe.columns) - 2)]
-#
-# """Scaler"""
-# scaler = StandardScaler()
-#
-# """Input Data for Models"""
-# X = np.array(full_dataframe[full_columns])
-# Y = np.array(full_dataframe[["Category"]])
-#
-# """Imputer for Nan"""
-# imp = SimpleImputer(missing_values=np.nan, strategy="mean")
-# imp.fit(X)
-# X = imp.transform(X)
-#
-# """Train Model"""
-#
-# model = ensemble.RandomForestClassifier(random_state=0)
-# scaler = scaler.fit(X, Y.ravel())
-# X = scaler.transform(X)
-# rfe = feature_selection.RFE(model, step=1)
-# rfe = rfe.fit(X, Y.ravel())
-# X = rfe.transform(X)
-# model.fit(X, Y.ravel())
-#
-# with open(path + "//" + "imp.pkl", "wb") as f:
-#     pickle.dump(imp, f)
-# with open(path + "//" + "scaler.pkl", "wb") as f:
-#     pickle.dump(scaler, f)
-# with open(path + "//" + "rfe.pkl", "wb") as f:
-#     pickle.dump(rfe, f)
-# with open(path + "//" + "model.pkl", "wb") as f:
-#     pickle.dump(model, f)
+
+"""Scaler"""
+scaler, scaler_arousal, scaler_valence = (
+    StandardScaler(),
+    StandardScaler(),
+    StandardScaler(),
+)
+
+"""Input Data for Models"""
+X = np.array(full_dataframe[full_columns])
+X_arousal = np.array(full_dataframe[full_columns])
+X_valence = np.array(full_dataframe[full_columns])
+
+Y = np.array(full_dataframe[["Category"]])
+Y_arousal = np.array(full_dataframe[["Arousal Level"]])
+Y_valence = np.array(full_dataframe[["Valence Level"]])
+
+"""Train Model"""
+imp = SimpleImputer(missing_values=np.nan, strategy="mean")
+imp.fit(X)
+X = imp.transform(X)
+model = ensemble.RandomForestClassifier(random_state=0)
+scaler = scaler.fit(X, Y.ravel())
+X = scaler.transform(X)
+rfe = feature_selection.RFE(model, step=1)
+rfe = rfe.fit(X, Y.ravel())
+X = rfe.transform(X)
+model.fit(X, Y.ravel())
+
+with open(path + "//" + "imp.pkl", "wb") as f:
+    pickle.dump(imp, f)
+with open(path + "//" + "scaler.pkl", "wb") as f:
+    pickle.dump(scaler, f)
+with open(path + "//" + "rfe.pkl", "wb") as f:
+    pickle.dump(rfe, f)
+with open(path + "//" + "model.pkl", "wb") as f:
+    pickle.dump(model, f)
+
+"""Arousal Model"""
+
+imp_arousal = SimpleImputer(missing_values=np.nan, strategy="mean")
+imp_arousal.fit(X_arousal)
+X_arousal = imp.transform(X_arousal)
+model_arousal = ensemble.RandomForestClassifier(random_state=0)
+scaler_arousal = scaler_arousal.fit(X_arousal, Y_arousal.ravel())
+X_arousal = scaler_arousal.transform(X_arousal)
+rfe_arousal = feature_selection.RFE(model_arousal, step=1)
+rfe_arousal = rfe_arousal.fit(X_arousal, Y_arousal.ravel())
+X_arousal = rfe_arousal.transform(X_arousal)
+model_arousal.fit(X_arousal, Y_arousal.ravel())
+
+with open(path + "//" + "imp_arousal.pkl", "wb") as f:
+    pickle.dump(imp_arousal, f)
+with open(path + "//" + "scaler_arousal.pkl", "wb") as f:
+    pickle.dump(scaler_arousal, f)
+with open(path + "//" + "rfe_arousal.pkl", "wb") as f:
+    pickle.dump(rfe_arousal, f)
+with open(path + "//" + "model_arousal.pkl", "wb") as f:
+    pickle.dump(model_arousal, f)
+
+"""valence Model"""
+
+imp_valence = SimpleImputer(missing_values=np.nan, strategy="mean")
+imp_valence.fit(X_valence)
+X_valence = imp.transform(X_valence)
+model_valence = ensemble.RandomForestClassifier(random_state=0)
+scaler_valence = scaler_valence.fit(X_valence, Y_valence.ravel())
+X_valence = scaler_valence.transform(X_valence)
+rfe_valence = feature_selection.RFE(model_valence, step=1)
+rfe_valence = rfe_valence.fit(X_valence, Y_valence.ravel())
+X_valence = rfe_valence.transform(X_valence)
+model_valence.fit(X_valence, Y_valence.ravel())
+
+with open(path + "//" + "imp_valence.pkl", "wb") as f:
+    pickle.dump(imp_valence, f)
+with open(path + "//" + "scaler_valence.pkl", "wb") as f:
+    pickle.dump(scaler_valence, f)
+with open(path + "//" + "rfe_valence.pkl", "wb") as f:
+    pickle.dump(rfe_valence, f)
+with open(path + "//" + "model_valence.pkl", "wb") as f:
+    pickle.dump(model_valence, f)
