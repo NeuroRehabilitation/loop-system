@@ -35,7 +35,7 @@ docutils @ file:///C:/Windows/Temp/abs_b6cq4adtko/croots/recipe/docutils_1659506
 entrypoints @ file:///C:/ci/entrypoints_1649926676279/work
 executing==1.2.0
 fastjsonschema @ file:///C:/Users/BUILDE~1/AppData/Local/Temp/abs_ebruxzvd08/croots/recipe/python-fastjsonschema_1661376484940/work
-fonttools==4.38.0
+fonttools==4.39.0
 future @ file:///C:/ci_310/future_1642081234309/work
 h5py==3.8.0
 idna @ file:///tmp/build/80754af9/idna_1637925883363/work
@@ -49,7 +49,7 @@ Jinja2==3.1.2
 joblib==1.2.0
 jsonschema @ file:///C:/b/abs_59eyhnbyej/croots/recipe/jsonschema_1663375476535/work
 jupyter==1.0.0
-jupyter-console==6.6.2
+jupyter-console==6.6.3
 jupyter-server @ file:///C:/Windows/TEMP/abs_d3c42c59-765d-4f9b-9fa3-ad5b1369485611i_yual/croots/recipe/jupyter_server_1658754493238/work
 jupyter_client @ file:///C:/b/abs_8fbm7986b_/croots/recipe/jupyter_client_1662504374117/work
 jupyter_core==5.2.0
@@ -88,7 +88,7 @@ pathspec==0.11.0
 pickleshare @ file:///tmp/build/80754af9/pickleshare_1606932040724/work
 Pillow==9.4.0
 pkginfo @ file:///tmp/build/80754af9/pkginfo_1643162084911/work
-platformdirs==3.1.0
+platformdirs==3.1.1
 prometheus-client==0.16.0
 prompt-toolkit==3.0.38
 psutil==5.9.4
@@ -119,7 +119,7 @@ pywinpty==2.0.10
 pyxdf~=1.16.4
 PyYAML==6.0
 pyzmq @ file:///C:/ci/pyzmq_1657616000714/work
-qtconsole==5.4.0
+qtconsole==5.4.1
 QtPy==2.3.0
 readme-renderer @ file:///C:/ci_310/readme_renderer_1642120771396/work
 regex==2022.10.31
@@ -165,5 +165,5 @@ win-inet-pton @ file:///C:/ci_310/win_inet_pton_1642658466512/work
 wincertstore==0.2
 zope.interface==5.5.2
 numpy~=1.24.2
-scikit-learn~=1.2.1
+scikit-learn~=1.2.2
 future~=0.18.3
