@@ -9,5 +9,7 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "weekly"
+    labels:
+      - "🔗 deps"
     # Allow up to 200 open pull requests
     open-pull-requests-limit: 200
