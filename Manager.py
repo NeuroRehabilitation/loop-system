@@ -16,18 +16,13 @@ class Manager:
         # Get streams information
         process.info = sync.info_queue.get()
 
-        # Start timer
-        start_time = time.perf_counter()
-
         # While is acquiring data
-        while bool(sync.startAcquisition.value):
-            # Update timer
-            elapsed_time = time.perf_counter() - start_time
+        while True:
             if sync.markers_queue.qsize() > 0:
                 video, marker = sync.markers_queue.get()
                 print("Video = " + str(video))
-                if video == "end":
-                    sync.startAcquisition.value = 0
+                # if video == "end":
+                #     sync.startAcquisition.value = 0
                 if video == "start":
                     sync.videoStarted.value = 1
             if sync.arousal_queue.qsize() > 0:

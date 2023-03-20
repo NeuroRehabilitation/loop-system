@@ -32,7 +32,8 @@ for root, dirs, files in os.walk(path):
 Opensignals_fs = 1000
 EEG_fs = 250
 resolution = 16
-sensors = ["ECG", "EDA", "RESP", "TEMP", "fnirs1", "fnirs2"]
+# sensors = ["ECG", "EDA", "RESP", "TEMP", "fnirs1", "fnirs2"]
+sensors = ["ECG"]
 
 (
     events_diff,
