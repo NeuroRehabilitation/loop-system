@@ -6,10 +6,10 @@ import pickle
 
 """Load Data from Folder"""
 
-folder = os.getcwd() + "\Training Models"
-participant = "\P1"
+folder = os.getcwd() + "\\Training Models\\"
+participant = "P1"
 path = folder + participant
-
+print(path)
 os.chdir(path)
 (
     users,
@@ -33,7 +33,7 @@ Opensignals_fs = 1000
 EEG_fs = 250
 resolution = 16
 # sensors = ["ECG", "EDA", "RESP", "TEMP", "fnirs1", "fnirs2"]
-sensors = ["ECG"]
+sensors = ["ECG", "EDA", "RESP"]
 
 (
     events_diff,
@@ -63,25 +63,29 @@ EEG_filtered = getEEGChannels(EEG_filtered)
 EEG_epochs = getEpochs(EEG_filtered, onset_index_EEG, events_diff, EEG_fs)
 EEG_dict = getVideosDict(EEG_epochs, videos)
 features_EEG = getEEGBands(EEG_dict, EEG_fs)
-features_epochs_EEG = getEEGDict(features_EEG)
+features_epochs_EEG, features_baseline_EEG = getEEGDict(features_EEG)
 
 """Biosignalsplux Processing"""
 Signals_epochs = getSignalsEpochs(data, onset_index, events_diff, Opensignals_fs)
 Signals = getVideosDict(Signals_epochs, videos)
 features_signals = getFeatures(Signals, Opensignals_fs, resolution)
-features_epochs = getFeaturesEpochs(features_signals)
+features_epochs, df_baseline = getFeaturesEpochs(features_signals)
+
+df_baseline[participant].to_csv(path + "\\baseline.csv", sep=";")
 
 """Dataframes"""
-dataframe_EEG = getEEGDataframe(features_epochs_EEG)
+dataframe_EEG = getEEGDataframe(features_epochs_EEG, features_baseline_EEG)
 dataframe = getSignalsDataframe(features_epochs)
 
 """Concatenate Dataframes"""
 columns = dataframe.columns[: (len(dataframe.columns) - 2)]
 columns_EEG = dataframe_EEG.columns[: (len(dataframe_EEG.columns) - 2)]
 full_dataframe = pd.concat([dataframe_EEG[columns_EEG], dataframe], axis=1)
-full_dataframe.insert(-1, "Valence Level", valence)
-full_dataframe.insert(-1, "Arousal Level", arousal)
-full_columns = full_dataframe.columns[: (len(full_dataframe.columns) - 2)]
+full_dataframe["Valence Level"] = valence[participant]
+full_dataframe["Arousal Level"] = arousal[participant]
+# full_dataframe.insert(-1, "Valence Level", valence)
+# full_dataframe.insert(-1, "Arousal Level", arousal)
+full_columns = full_dataframe.columns[: (len(full_dataframe.columns) - 4)]
 
 """Scaler"""
 scaler, scaler_arousal, scaler_valence = (
