@@ -1,3 +1,5 @@
+import pandas as pd
+
 from Process_Features import *
 
 
@@ -89,10 +91,10 @@ def getEEGBands(EEG_dict: dict, EEG_fs: int) -> dict:
 
 @staticmethod
 def getEEGDict(features_EEG: dict) -> dict:
-    features_epochs_EEG = {}
+    features_epochs_EEG, features_baseline_EEG = {}, {}
 
     for user in features_EEG.keys():
-        temp_dict = {}
+        temp_dict, baseline_dict = {}, {}
         for video in features_EEG[user].keys():
             if video != "baseline":
                 channel_dict = dict()
@@ -105,9 +107,21 @@ def getEEGDict(features_EEG: dict) -> dict:
                         )
                     channel_dict[channel] = band_dict
                 temp_dict[video] = channel_dict
-        features_epochs_EEG[user] = temp_dict
+            elif video == "baseline":
+                channel_dict = dict()
+                for channel in features_EEG[user][video].keys():
+                    band_dict = {}
+                    for feature in features_EEG[user][video][channel].keys():
+                        band_dict[feature] = features_EEG[user]["baseline"][channel][
+                            feature
+                        ]
+                    channel_dict[channel] = band_dict
+                baseline_dict[channel] = channel_dict
 
-    return features_epochs_EEG
+        features_epochs_EEG[user] = temp_dict
+        features_baseline_EEG[user] = baseline_dict
+
+    return features_epochs_EEG, features_baseline_EEG
 
 
 @staticmethod
@@ -124,26 +138,33 @@ def getFeatures(data: dict, fs: int, resolution: int) -> dict:
 
 
 @staticmethod
-def getFeaturesEpochs(data: dict) -> dict:
-    features_epochs = {}
+def getFeaturesEpochs(data: dict) -> tuple:
 
+    features_epochs, baseline_dict = {}, {}
+    df_baseline = pd.DataFrame()
     for user in data.keys():
         temp_dict = {}
         for video in data[user].keys():
             df_test = pd.DataFrame()
+
             if video != "baseline":
                 for feature in data[user][video].columns:
                     df_test[feature] = (
                         data[user][video][feature] - data[user]["baseline"][feature]
                     )
                 temp_dict[video] = df_test
-        features_epochs[user] = temp_dict
+            elif video == "baseline":
+                for feature in data[user][video].columns:
+                    df_baseline[feature] = data[user]["baseline"][feature]
 
-    return features_epochs
+        features_epochs[user] = temp_dict
+        baseline_dict[user] = df_baseline
+
+    return features_epochs, baseline_dict
 
 
 @staticmethod
-def getEEGDataframe(features_epochs_EEG: dict):
+def getEEGDataframe(features_epochs_EEG: dict, features_baseline_EEG: dict):
     columns = list()
     category, video = [], []
 
@@ -166,8 +187,8 @@ def getEEGDataframe(features_epochs_EEG: dict):
                             features_epochs_EEG[users][videos][channel][band]
                         )
                 temp_df.loc[i] = temp_list
-                category.append(videos.split("/")[0])
-                video.append(videos)
+                category.append(videos.split("/")[1])
+                video.append(videos.split("/")[2])
         df_EEG = pd.concat([df_EEG, temp_df], ignore_index=True)
     df_EEG["Category"] = category
     df_EEG["Video"] = video
@@ -187,8 +208,8 @@ def getSignalsDataframe(features_epochs: dict):
         for epoch in features_epochs[users].keys():
             if epoch != "baseline":
                 df = pd.concat([df, features_epochs[users][epoch]], ignore_index=True)
-                category.append(epoch.split("/")[0])
-                videos.append(epoch)
+                category.append(epoch.split("/")[1])
+                videos.append(epoch.split("/")[2])
     df["Category"] = category
     df["Video"] = videos
 
