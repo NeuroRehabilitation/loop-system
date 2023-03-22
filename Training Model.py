@@ -9,7 +9,7 @@ import pickle
 folder = os.getcwd() + "\\Training Models\\"
 participant = "P1"
 path = folder + participant
-print(path)
+
 os.chdir(path)
 (
     users,
@@ -74,17 +74,18 @@ features_epochs, df_baseline = getFeaturesEpochs(features_signals)
 df_baseline[participant].to_csv(path + "\\baseline.csv", sep=";")
 
 """Dataframes"""
-dataframe_EEG = getEEGDataframe(features_epochs_EEG, features_baseline_EEG)
+dataframe_EEG, EEG_baseline = getEEGDataframe(
+    features_epochs_EEG, features_baseline_EEG
+)
 dataframe = getSignalsDataframe(features_epochs)
 
+EEG_baseline.to_csv(path + "\\EEGbaseline.csv", sep=";")
 """Concatenate Dataframes"""
 columns = dataframe.columns[: (len(dataframe.columns) - 2)]
 columns_EEG = dataframe_EEG.columns[: (len(dataframe_EEG.columns) - 2)]
 full_dataframe = pd.concat([dataframe_EEG[columns_EEG], dataframe], axis=1)
 full_dataframe["Valence Level"] = valence[participant]
 full_dataframe["Arousal Level"] = arousal[participant]
-# full_dataframe.insert(-1, "Valence Level", valence)
-# full_dataframe.insert(-1, "Arousal Level", arousal)
 full_columns = full_dataframe.columns[: (len(full_dataframe.columns) - 4)]
 
 """Scaler"""
