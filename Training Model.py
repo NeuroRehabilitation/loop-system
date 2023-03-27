@@ -7,7 +7,7 @@ import pickle
 """Load Data from Folder"""
 
 folder = os.getcwd() + "\\Training Models\\"
-participant = "P1"
+participant = "P2"
 path = folder + participant
 
 os.chdir(path)
@@ -80,6 +80,7 @@ dataframe_EEG, EEG_baseline = getEEGDataframe(
 dataframe = getSignalsDataframe(features_epochs)
 
 EEG_baseline.to_csv(path + "\\EEGbaseline.csv", sep=";")
+
 """Concatenate Dataframes"""
 columns = dataframe.columns[: (len(dataframe.columns) - 2)]
 columns_EEG = dataframe_EEG.columns[: (len(dataframe_EEG.columns) - 2)]

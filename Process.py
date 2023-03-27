@@ -1,6 +1,6 @@
-import pandas as pd
-
 from Process_Features import *
+from Signals_Processing import *
+import pickle
 
 
 class Processing:
@@ -37,22 +37,28 @@ class Processing:
     def getOpenvibe(self):
         for stream in self.info:
             if stream["Name"] == "openvibeSignal":
-                EEG_dict = {}
                 fs = stream["Sampling Rate"]
+                # EEG_filtered = filterEEG(self.data["openvibeSignal"], fs)
+                # print(EEG_filtered)
+                EEG_dict = {}
                 for i, key in enumerate(self.data["openvibeSignal"]):
                     if i > 0 and i < 33:
-                        channel = "EEG" + str(i)
-                        sensor = EEG(self.data["openvibeSignal"][key], fs, 16)
-                        EEG_dict[channel] = sensor.getFeatures()
+                        channel = "EEG_" + str(i)
+                        #         sensor = EEG(self.data["openvibeSignal"][key], fs, 16)
+                        EEG_dict[channel] = EEG.frequencyAnalysis(
+                            EEG.filterData(
+                                EEG.ICA(self.data["openvibeSignal"][key]), fs
+                            ),
+                            fs,
+                        )
                 columns, temp_list = [], []
                 for channel in EEG_dict.keys():
                     for band in EEG_dict[channel].keys():
                         columns.append(channel + "_" + band)
                         temp_list.append(EEG_dict[channel][band])
-
                 EEG_Dataframe = pd.DataFrame(columns=columns)
                 EEG_Dataframe.loc[0] = temp_list
-                self.features = pd.concat([self.features, EEG_Dataframe], axis=1)
+                self.features = pd.concat([EEG_Dataframe, self.features], axis=1)
                 # print(EEG_Dataframe)
                 # print(self.features)
         return self.features
@@ -66,3 +72,21 @@ class Processing:
             self.features = self.getOpenvibe()
 
         return self.features
+
+    def loadModels(self, path: str, target=""):
+        imp = pickle.load(open(path + "\\imp" + target + ".pkl", "rb"))
+        scaler = pickle.load(open(path + "\\scaler" + target + ".pkl", "rb"))
+        rfe = pickle.load(open(path + "\\rfe" + target + ".pkl", "rb"))
+        model = pickle.load(open(path + "\\model" + target + ".pkl", "rb"))
+
+        return imp, scaler, rfe, model
+
+    def predict(self, imp, scaler, rfe, model):
+        X = np.array(self.features)
+        X = imp.transform(X)
+        X = scaler.transform(X)
+        X = rfe.transform(X)
+
+        prediction = model.predict(X)
+
+        return prediction

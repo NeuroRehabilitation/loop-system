@@ -1,7 +1,4 @@
-import multiprocessing
-
 from Stream import *
-import sys, signal
 
 
 class ReceiveStreams(multiprocessing.Process):
