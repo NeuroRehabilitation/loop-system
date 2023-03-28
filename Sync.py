@@ -136,11 +136,6 @@ class Sync(multiprocessing.Process):
                 self.n_full_buffers += 1
             else:
                 for key in self.synced_dict[stream_name].keys():
-                    # print(
-                    #     stream_name
-                    #     + " = "
-                    #     + str(len(self.synced_dict[stream_name][key]))
-                    # )
                     if len(self.synced_dict[stream_name][key]) == max_size:
                         self.info_dict[stream_name]["Number full arrays"] += 1
 
@@ -169,7 +164,6 @@ class Sync(multiprocessing.Process):
             if all(i >= first_timestamp for i in self.timestamps.values()):
                 self.isSync = True
                 print("Streams are Synced.")
-                # print(first_timestamp)
 
     def getBuffers(self, data: tuple, stream_name: str) -> None:
         """
@@ -180,6 +174,7 @@ class Sync(multiprocessing.Process):
         :type stream_name: str
 
         """
+
         # If the data is not synchronized keep putting the timestamps from each stream on the dictionary self.timestamps
         if not self.isSync:
             self.timestamps[stream_name] = data[1]
@@ -192,7 +187,6 @@ class Sync(multiprocessing.Process):
                     if self.n_full_buffers == len(
                         self.synced_dict.keys()
                     ):  # If first buffer has reached the maximum size put flag isFirstBuffer to False
-                        print("Get Buffer")
                         self.isFirstBuffer = False
 
                     else:
@@ -205,7 +199,7 @@ class Sync(multiprocessing.Process):
                 # If it is not the first buffer (buffers are with max size)
                 # Start sliding window and put buffers on the Queue to send to process
 
-                # self.slidingWindow(stream_name)
+                self.slidingWindow(stream_name)
                 self.fillData(data, stream_name)
                 self.buffer_queue.put(self.synced_dict)
 

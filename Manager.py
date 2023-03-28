@@ -10,7 +10,7 @@ class Manager:
         path = folder + participant
 
         # Instantiate object from class Sync and Processing
-        sync = Sync(buffer_window=30)
+        sync = Sync(buffer_window=40)
         process = Processing()
 
         # Start process Sync and put flag startAcquisition as True
@@ -60,8 +60,9 @@ class Manager:
                 process.data = sync.buffer_queue.get()
                 process.features = process.processData()
                 process.features -= dataframe_baseline
-                print(process.features)
+                # print(process.features)
                 category = process.predict(imp, scaler, rfe, model)
+                # print(category)
 
         sync.terminate()
         sync.join()
