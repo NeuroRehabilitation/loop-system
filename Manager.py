@@ -4,7 +4,6 @@ from Process import *
 
 class Manager:
     def run(self):
-
         folder = os.getcwd() + "\\Training Models\\"
         participant = "P2"
         path = folder + participant
