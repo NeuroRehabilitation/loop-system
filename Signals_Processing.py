@@ -137,7 +137,6 @@ def getFeatures(data: dict, fs: int, resolution: int) -> dict:
 
 @staticmethod
 def getFeaturesEpochs(data: dict) -> tuple:
-
     features_epochs, baseline_dict = {}, {}
     df_baseline = pd.DataFrame()
     for user in data.keys():
@@ -176,7 +175,6 @@ def getEEGDataframe(features_epochs_EEG: dict, features_baseline_EEG: dict):
     baseline_df = pd.DataFrame(columns=columns)
 
     for users in features_epochs_EEG.keys():
-
         temp_df = pd.DataFrame(columns=columns)
         baseline_list = list()
 
