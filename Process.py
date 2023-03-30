@@ -7,7 +7,6 @@ class Processing:
     def __init__(self):
         self.info = []
         self.data = {}
-        self.features = pd.DataFrame()
 
     def getOpenSignals(self):
         for stream in self.info:
@@ -65,6 +64,8 @@ class Processing:
         return self.features
 
     def processData(self):
+        self.features = pd.DataFrame()
+
         if "OpenSignals" in self.data.keys():
             self.features = self.getOpenSignals()
         if "openvibeSignal" in self.data.keys():
