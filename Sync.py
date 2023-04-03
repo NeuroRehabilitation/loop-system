@@ -259,7 +259,6 @@ class Sync(multiprocessing.Process):
                 if "PsychoPy" in stream_name:
                     self.getPsychoPyData(data_temp, stream_name)
             else:
-
                 # If data is synced, get the data from the queue and fill the buffers with data
                 stream_name, data = streams_receiver.data_queue.get()
                 if "PsychoPy" in stream_name:
