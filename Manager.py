@@ -9,7 +9,7 @@ warnings.filterwarnings("ignore")
 class Manager:
     def run(self):
         folder = os.getcwd() + "\\Training Models\\"
-        participant = "P2"
+        participant = "P3"
         path = folder + participant
 
         f = open(path + "\\output.csv", "w")
@@ -45,7 +45,7 @@ class Manager:
         while bool(sync.startAcquisition.value):
             if sync.markers_queue.qsize() > 0:
                 video, marker = sync.markers_queue.get()
-                print("Video = " + str(video))
+                # print("Video = " + str(video))
                 if video == "end":
                     sync.startAcquisition.value = 0
             if sync.arousal_queue.qsize() > 0:
@@ -54,24 +54,24 @@ class Manager:
                     imp_arousal, scaler_arousal, rfe_arousal, model_arousal
                 )
                 writer.writerow(["Arousal", str(true_arousal), arousal[0]])
-                print(
-                    "True Arousal = "
-                    + str(true_arousal)
-                    + " , Arousal Prediction = "
-                    + str(arousal)
-                )
+                # print(
+                #     "True Arousal = "
+                #     + str(true_arousal)
+                #     + " , Arousal Prediction = "
+                #     + str(arousal)
+                # )
             if sync.valence_queue.qsize() > 0:
                 true_valence = sync.valence_queue.get()
                 valence = process.predict(
                     imp_valence, scaler_valence, rfe_valence, model_valence
                 )
                 writer.writerow(["Valence", str(true_valence), valence[0]])
-                print(
-                    "True Valence = "
-                    + str(true_valence)
-                    + " , Valence Prediction = "
-                    + str(valence)
-                )
+                # print(
+                #     "True Valence = "
+                #     + str(true_valence)
+                #     + " , Valence Prediction = "
+                #     + str(valence)
+                # )
             # If there is data in the buffer queue from Sync, send to Process.
             if sync.buffer_queue.qsize() > 0:
                 process.data = sync.buffer_queue.get()
@@ -79,13 +79,13 @@ class Manager:
                 process.features = process.features.sub(dataframe_baseline)
                 category = process.predict(imp, scaler, rfe, model)
                 if video != "end":
-                    writer.writerow(["Category", video.split("/")[1], category])
-                print(
-                    "True Category = "
-                    + str(video)
-                    + " , Category Prediction = "
-                    + category
-                )
+                    writer.writerow(["Category", video.split("/")[1], category[0]])
+                # print(
+                #     "True Category = "
+                #     + str(video)
+                #     + " , Category Prediction = "
+                #     + category
+                # )
 
         f.close()
         sync.terminate()
