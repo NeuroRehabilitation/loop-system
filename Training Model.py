@@ -7,7 +7,7 @@ import pickle
 """Load Data from Folder"""
 
 folder = os.getcwd() + "\\Training Models\\"
-participant = "P2"
+participant = "P3"
 path = folder + participant
 
 os.chdir(path)
@@ -29,10 +29,9 @@ for root, dirs, files in os.walk(path):
         if fname.endswith(".xdf"):
             users[fname] = Run_files(fname)
 
-Opensignals_fs = 1000
+Opensignals_fs = 100
 EEG_fs = 250
 resolution = 16
-# sensors = ["ECG", "EDA", "RESP", "TEMP", "fnirs1", "fnirs2"]
 sensors = ["ECG", "EDA", "RESP"]
 
 (
