@@ -48,7 +48,7 @@ class Sync(multiprocessing.Process):
 
         # Flag to start the acquisition of data by the Manager.
         self.startAcquisition = multiprocessing.Value("i", 0)
-        self.startBuffer = multiprocessing.Value("i", 0)
+        self.sendBuffer = multiprocessing.Value("i", 0)
 
         # Number of full buffers from all the streams
         self.n_full_buffers = 0
@@ -198,10 +198,10 @@ class Sync(multiprocessing.Process):
             else:
                 # If it is not the first buffer (buffers are with max size)
                 # Start sliding window and put buffers on the Queue to send to process
-
+                print("Sliding Window")
                 self.slidingWindow(stream_name)
+                print("Fill Data")
                 self.fillData(data, stream_name)
-                self.buffer_queue.put(self.synced_dict)
 
     def getPsychoPyData(self, data: tuple, stream_name: str) -> None:
         if "Markers" in stream_name:
@@ -228,6 +228,8 @@ class Sync(multiprocessing.Process):
         data_stream = self.fill_any(10000)
         q.put(data_stream)
 
+        start_time = time.time()
+
         # p2 = multiprocessing.Process(target=main.Run, args=(q,))
         # p2.start()
 
@@ -250,8 +252,28 @@ class Sync(multiprocessing.Process):
 
         # Loop to receive the data - start acquisition is true
         while bool(self.startAcquisition.value):
+            print("Time elasped = {}".format(time.time() - start_time))
             # If data is not synced, retrieve data from the queue but don't use it
             # Synchronize the data
+            if not self.isSync:
+                stream_name, data_temp = streams_receiver.data_queue.get()
+                self.getBuffers(data_temp, stream_name)
+                self.syncStreams(first_timestamp)
+                if "PsychoPy" in stream_name:
+                    self.getPsychoPyData(data_temp, stream_name)
+
+            if self.isSync:
+                stream_name, data = streams_receiver.data_queue.get()
+                if "PsychoPy" in stream_name:
+                    self.getPsychoPyData(data, stream_name)
+                else:
+                    self.getBuffers(data, stream_name)
+
+                if bool(self.sendBuffer.value) and self.isFirstBuffer == False:
+                    print("send Buffer")
+                    self.buffer_queue.put(self.synced_dict)
+                    print(self.buffer_queue.qsize())
+            """
             if not self.isSync:
                 stream_name, data_temp = streams_receiver.data_queue.get()
                 self.getBuffers(data_temp, stream_name)
@@ -265,9 +287,11 @@ class Sync(multiprocessing.Process):
                     self.getPsychoPyData(data, stream_name)
                 else:
                     self.getBuffers(data, stream_name)
-                # data_stream.pop(0)
-                # data_stream.append(data[0][1])
-                # self.SendData_To_Display(q, data_stream)
+                    self.buffer_queue.put(self.synced_dict)
+            """
+            # data_stream.pop(0)
+            # data_stream.append(data[0][1])
+            # self.SendData_To_Display(q, data_stream)
 
         # Stop all running child processes
         streams_receiver.stopChildProcesses()
