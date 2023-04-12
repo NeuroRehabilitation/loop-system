@@ -7,7 +7,7 @@ import pickle
 """Load Data from Folder"""
 
 folder = os.getcwd() + "\\Training Models\\"
-participant = "P3"
+participant = "P5"
 path = folder + participant
 
 os.chdir(path)

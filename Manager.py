@@ -9,7 +9,7 @@ warnings.filterwarnings("ignore")
 class Manager:
     def run(self):
         folder = os.getcwd() + "\\Training Models\\"
-        participant = "P3"
+        participant = "P5"
         path = folder + participant
 
         f = open(path + "\\output.csv", "w")
@@ -18,7 +18,7 @@ class Manager:
         writer.writerow(header)
 
         # Instantiate object from class Sync and Processing
-        sync = Sync(buffer_window=10)
+        sync = Sync(buffer_window=40)
         process = Processing()
 
         # Start process Sync and put flag startAcquisition as True
@@ -76,17 +76,17 @@ class Manager:
             if sync.buffer_queue.qsize() > 0:
                 sync.sendBuffer.value = 0
                 process.data = sync.buffer_queue.get()
-                # process.features = process.processData()
-                # process.features = process.features.sub(dataframe_baseline)
-                # category = process.predict(imp, scaler, rfe, model)
-                # if video != "end":
-                #     writer.writerow(["Category", video.split("/")[1], category[0]])
-                # print(
-                #     "True Category = "
-                #     + str(video)
-                #     + " , Category Prediction = "
-                #     + category
-                # )
+                process.features = process.processData()
+                process.features = process.features.sub(dataframe_baseline)
+                category = process.predict(imp, scaler, rfe, model)
+                if video != "end":
+                    writer.writerow(["Category", video.split("/")[1], category[0]])
+                print(
+                    "True Category = "
+                    + str(video)
+                    + " , Category Prediction = "
+                    + category
+                )
                 sync.sendBuffer.value = 1
 
         f.close()
