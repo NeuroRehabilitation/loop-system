@@ -247,7 +247,6 @@ class Sync(multiprocessing.Process):
 
         # Loop to receive the data - start acquisition is true
         while bool(self.startAcquisition.value):
-
             # If data is not synced, retrieve data from the queue but don't use it
             # Synchronize the data
             if not self.isSync:
@@ -258,7 +257,6 @@ class Sync(multiprocessing.Process):
                     self.getPsychoPyData(data_temp, stream_name)
 
             if self.isSync:
-
                 stream_name, data = streams_receiver.data_queue.get()
                 if "PsychoPy" in stream_name:
                     self.getPsychoPyData(data, stream_name)
