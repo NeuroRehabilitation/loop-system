@@ -15,7 +15,7 @@ biosignalsnotebooks~=0.6.10
 biosppy==1.0.0
 black==23.3.0
 bleach==6.0.0
-blinker==1.6.1
+blinker==1.6.2
 bokeh==3.1.0
 brotlipy==0.7.0
 certifi @ file:///C:/b/abs_ac29jvt43w/croot/certifi_1665076682579/work/certifi
@@ -69,7 +69,7 @@ mkl-service==2.4.0
 mypy-extensions==1.0.0
 nbclassic @ file:///C:/b/abs_26e3fkk516/croot/nbclassic_1668174974037/work
 nbclient==0.7.3
-nbconvert==7.3.0
+nbconvert==7.3.1
 nbformat @ file:///C:/b/abs_1dw90o2uqb/croots/recipe/nbformat_1663744957967/work
 nest-asyncio @ file:///C:/ci/nest-asyncio_1649848132512/work
 neurokit2~=0.2.4
@@ -79,7 +79,7 @@ numba==0.56.3
 numpy @ file:///C:/b/abs_53f_dbvhzc/croot/numpy_and_numpy_base_1665773185489/work
 oauthlib==3.2.2
 opencv-python==4.7.0.72
-packaging==23.0
+packaging==23.1
 pandas~=2.0.0
 pandocfilters @ file:///opt/conda/conda-bld/pandocfilters_1643405455980/work
 parso==0.8.3
