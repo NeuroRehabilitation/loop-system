@@ -5,7 +5,7 @@ argon2-cffi @ file:///opt/conda/conda-bld/argon2-cffi_1645000214183/work
 argon2-cffi-bindings @ file:///C:/ci/argon2-cffi-bindings_1644569876605/work
 asttokens @ file:///opt/conda/conda-bld/asttokens_1646925590279/work
 atomicwrites @ file:///Users/ktietz/demo/mc3/conda-bld/atomicwrites_1630511751522/work
-attrs==22.2.0
+attrs==23.1.0
 autopep8==2.0.2
 Babel @ file:///tmp/build/80754af9/babel_1620871417480/work
 backcall @ file:///home/ktietz/src/ci/backcall_1611930011877/work
@@ -69,7 +69,7 @@ mkl-service==2.4.0
 mypy-extensions==1.0.0
 nbclassic @ file:///C:/b/abs_26e3fkk516/croot/nbclassic_1668174974037/work
 nbclient==0.7.3
-nbconvert==7.3.0
+nbconvert==7.3.1
 nbformat @ file:///C:/b/abs_1dw90o2uqb/croots/recipe/nbformat_1663744957967/work
 nest-asyncio @ file:///C:/ci/nest-asyncio_1649848132512/work
 neurokit2~=0.2.4
@@ -79,7 +79,7 @@ numba==0.56.3
 numpy @ file:///C:/b/abs_53f_dbvhzc/croot/numpy_and_numpy_base_1665773185489/work
 oauthlib==3.2.2
 opencv-python==4.7.0.72
-packaging==23.0
+packaging==23.1
 pandas~=2.0.0
 pandocfilters @ file:///opt/conda/conda-bld/pandocfilters_1643405455980/work
 parso==0.8.3
