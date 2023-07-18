@@ -117,7 +117,7 @@ pytz @ file:///C:/Windows/TEMP/abs_90eacd4e-8eff-491e-b26e-f707eba2cbe1ujvbhqz1/
 pywin32==306
 pywinpty==2.0.11
 pyxdf~=1.16.4
-PyYAML==6.0
+PyYAML==6.0.1
 pyzmq @ file:///C:/ci/pyzmq_1657616000714/work
 qtconsole==5.4.3
 QtPy==2.3.1
