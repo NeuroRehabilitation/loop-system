@@ -9,7 +9,7 @@ warnings.filterwarnings("ignore")
 class Manager:
     def run(self):
         folder = os.getcwd() + "\\Training Models\\"
-        participant = "P5"
+        participant = "P0"
         path = folder + participant
 
         f = open(path + "\\output.csv", "w")

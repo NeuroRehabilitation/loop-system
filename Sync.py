@@ -221,9 +221,9 @@ class Sync(multiprocessing.Process):
         time.sleep(0.01)
 
     def run(self):
-        q = multiprocessing.Queue()
-        data_stream = self.fill_any(10000)
-        q.put(data_stream)
+        # q = multiprocessing.Queue()
+        # data_stream = self.fill_any(10000)
+        # q.put(data_stream)
 
         # p2 = multiprocessing.Process(target=main.Run, args=(q,))
         # p2.start()
