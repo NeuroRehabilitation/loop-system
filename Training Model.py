@@ -26,8 +26,12 @@ os.chdir(path)
 
 for root, dirs, files in os.walk(path):
     for fname in files:
-        if fname.endswith(".xdf"):
-            users[fname] = Run_files(fname)
+        try:
+            if fname.endswith(".xdf"):
+                users[fname] = Run_files(fname)
+        except Exception as e:
+            print(e)
+            print("No .xdf file!")
 
 Opensignals_fs = 100
 EEG_fs = 250
@@ -65,20 +69,26 @@ features_EEG = getEEGBands(EEG_dict, EEG_fs)
 features_epochs_EEG, features_baseline_EEG = getEEGDict(features_EEG)
 
 """Biosignalsplux Processing"""
-Signals_epochs = getSignalsEpochs(data, onset_index, events_diff, Opensignals_fs)
-Signals = getVideosDict(Signals_epochs, videos)
-features_signals = getFeatures(Signals, Opensignals_fs, resolution)
-features_epochs, df_baseline = getFeaturesEpochs(features_signals)
-
-df_baseline[participant].to_csv(path + "\\baseline.csv", sep=";")
+try:
+    Signals_epochs = getSignalsEpochs(data, onset_index, events_diff, Opensignals_fs)
+    Signals = getVideosDict(Signals_epochs, videos)
+    features_signals = getFeatures(Signals, Opensignals_fs, resolution)
+    features_epochs, df_baseline = getFeaturesEpochs(features_signals)
+except Exception as e:
+    print(e)
+finally:
+    df_baseline[participant].to_csv(path + "\\baseline.csv", sep=";")
 
 """Dataframes"""
-dataframe_EEG, EEG_baseline = getEEGDataframe(
-    features_epochs_EEG, features_baseline_EEG
-)
-dataframe = getSignalsDataframe(features_epochs)
-
-EEG_baseline.to_csv(path + "\\EEGbaseline.csv", sep=";")
+try:
+    dataframe_EEG, EEG_baseline = getEEGDataframe(
+        features_epochs_EEG, features_baseline_EEG
+    )
+    dataframe = getSignalsDataframe(features_epochs)
+except Exception as e:
+    print(e)
+finally:
+    EEG_baseline.to_csv(path + "\\EEGbaseline.csv", sep=";")
 
 """Concatenate Dataframes"""
 columns = dataframe.columns[: (len(dataframe.columns) - 2)]
@@ -116,14 +126,26 @@ rfe = rfe.fit(X, Y.ravel())
 X = rfe.transform(X)
 model.fit(X, Y.ravel())
 
-with open(path + "//" + "imp.pkl", "wb") as f:
-    pickle.dump(imp, f)
-with open(path + "//" + "scaler.pkl", "wb") as f:
-    pickle.dump(scaler, f)
-with open(path + "//" + "rfe.pkl", "wb") as f:
-    pickle.dump(rfe, f)
-with open(path + "//" + "model.pkl", "wb") as f:
-    pickle.dump(model, f)
+try:
+    with open(path + "//" + "imp.pkl", "wb") as f:
+        pickle.dump(imp, f)
+except Exception as e:
+    print(e)
+try:
+    with open(path + "//" + "scaler.pkl", "wb") as f:
+        pickle.dump(scaler, f)
+except Exception as e:
+    print(e)
+try:
+    with open(path + "//" + "rfe.pkl", "wb") as f:
+        pickle.dump(rfe, f)
+except Exception as e:
+    print(e)
+try:
+    with open(path + "//" + "model.pkl", "wb") as f:
+        pickle.dump(model, f)
+except Exception as e:
+    print(e)
 
 """Arousal Model"""
 
@@ -138,14 +160,26 @@ rfe_arousal = rfe_arousal.fit(X_arousal, Y_arousal.ravel())
 X_arousal = rfe_arousal.transform(X_arousal)
 model_arousal.fit(X_arousal, Y_arousal.ravel())
 
-with open(path + "//" + "imp_arousal.pkl", "wb") as f:
-    pickle.dump(imp_arousal, f)
-with open(path + "//" + "scaler_arousal.pkl", "wb") as f:
-    pickle.dump(scaler_arousal, f)
-with open(path + "//" + "rfe_arousal.pkl", "wb") as f:
-    pickle.dump(rfe_arousal, f)
-with open(path + "//" + "model_arousal.pkl", "wb") as f:
-    pickle.dump(model_arousal, f)
+try:
+    with open(path + "//" + "imp_arousal.pkl", "wb") as f:
+        pickle.dump(imp_arousal, f)
+except Exception as e:
+    print(e)
+try:
+    with open(path + "//" + "scaler_arousal.pkl", "wb") as f:
+        pickle.dump(scaler_arousal, f)
+except Exception as e:
+    print(e)
+try:
+    with open(path + "//" + "rfe_arousal.pkl", "wb") as f:
+        pickle.dump(rfe_arousal, f)
+except Exception as e:
+    print(e)
+try:
+    with open(path + "//" + "model_arousal.pkl", "wb") as f:
+        pickle.dump(model_arousal, f)
+except Exception as e:
+    print(e)
 
 """valence Model"""
 
@@ -160,11 +194,23 @@ rfe_valence = rfe_valence.fit(X_valence, Y_valence.ravel())
 X_valence = rfe_valence.transform(X_valence)
 model_valence.fit(X_valence, Y_valence.ravel())
 
-with open(path + "//" + "imp_valence.pkl", "wb") as f:
-    pickle.dump(imp_valence, f)
-with open(path + "//" + "scaler_valence.pkl", "wb") as f:
-    pickle.dump(scaler_valence, f)
-with open(path + "//" + "rfe_valence.pkl", "wb") as f:
-    pickle.dump(rfe_valence, f)
-with open(path + "//" + "model_valence.pkl", "wb") as f:
-    pickle.dump(model_valence, f)
+try:
+    with open(path + "//" + "imp_valence.pkl", "wb") as f:
+        pickle.dump(imp_valence, f)
+except Exception as e:
+    print(e)
+try:
+    with open(path + "//" + "scaler_valence.pkl", "wb") as f:
+        pickle.dump(scaler_valence, f)
+except Exception as e:
+    print(e)
+try:
+    with open(path + "//" + "rfe_valence.pkl", "wb") as f:
+        pickle.dump(rfe_valence, f)
+except Exception as e:
+    print(e)
+try:
+    with open(path + "//" + "model_valence.pkl", "wb") as f:
+        pickle.dump(model_valence, f)
+except Exception as e:
+    print(e)

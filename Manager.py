@@ -12,7 +12,10 @@ class Manager:
         participant = "P0"
         path = folder + participant
 
-        f = open(path + "\\output_stimuli.csv", "w")
+        try:
+            f = open(path + "\\output_stimuli.csv", "w")
+        except Exception as e:
+            print(e)
         writer = csv.writer(f)
         header = ["Variable", "True Value", "Prediction"]
         writer.writerow(header)
@@ -25,84 +28,120 @@ class Manager:
         sync.start()
         sync.startAcquisition.value = 1
         sync.sendBuffer.value = 1
+        try:
+            imp, scaler, rfe, model = process.loadModels(path)
+        except Exception as e:
+            print(e)
+            print("Error loading models!")
+        try:
+            (
+                imp_arousal,
+                scaler_arousal,
+                rfe_arousal,
+                model_arousal,
+            ) = process.loadModels(path, target="_arousal")
+        except Exception as e:
+            print(e)
+            print("Error loading arousal models!")
+        try:
+            (
+                imp_valence,
+                scaler_valence,
+                rfe_valence,
+                model_valence,
+            ) = process.loadModels(path, target="_valence")
+        except Exception as e:
+            print(e)
+            print("Error loading valence models!")
 
-        imp, scaler, rfe, model = process.loadModels(path)
-        imp_arousal, scaler_arousal, rfe_arousal, model_arousal = process.loadModels(
-            path, target="_arousal"
-        )
-        imp_valence, scaler_valence, rfe_valence, model_valence = process.loadModels(
-            path, target="_valence"
-        )
-
-        EEGbaseline = pd.read_csv(path + "\\EEGbaseline.csv", sep=";", index_col=0)
-        baseline = pd.read_csv(path + "\\baseline.csv", sep=";", index_col=0)
+        try:
+            EEGbaseline = pd.read_csv(path + "\\EEGbaseline.csv", sep=";", index_col=0)
+        except Exception as e:
+            print(e)
+        try:
+            baseline = pd.read_csv(path + "\\baseline.csv", sep=";", index_col=0)
+        except Exception as e:
+            print(e)
 
         dataframe_baseline = pd.concat([EEGbaseline, baseline], axis=1)
         # Get streams information
         process.info = sync.info_queue.get()
 
         # While is acquiring data
-        while bool(sync.startAcquisition.value):
-            if sync.markers_queue.qsize() > 0:
-                video, marker = sync.markers_queue.get()
-                print("Video = " + str(video))
-                if video == "end":
-                    sync.startAcquisition.value = 0
-            if sync.arousal_queue.qsize() > 0:
-                true_arousal = sync.arousal_queue.get()
-                arousal = process.predict(
-                    imp_arousal, scaler_arousal, rfe_arousal, model_arousal
-                )
-                writer.writerow(["Arousal", str(true_arousal), arousal[0]])
-                print(
-                    "True Arousal = "
-                    + str(true_arousal)
-                    + " , Arousal Prediction = "
-                    + str(arousal)
-                )
-            if sync.valence_queue.qsize() > 0:
-                true_valence = sync.valence_queue.get()
-                valence = process.predict(
-                    imp_valence, scaler_valence, rfe_valence, model_valence
-                )
-                writer.writerow(["Valence", str(true_valence), valence[0]])
-                print(
-                    "True Valence = "
-                    + str(true_valence)
-                    + " , Valence Prediction = "
-                    + str(valence)
-                )
-            # If there is data in the buffer queue from Sync, send to Process.
-            if sync.buffer_queue.qsize() > 0:
-                sync.sendBuffer.value = 0
-                process.data = sync.buffer_queue.get()
-                process.features = process.processData()
-                process.features = process.features.sub(dataframe_baseline)
-                category = process.predict(imp, scaler, rfe, model)
-                # arousal = process.predict(
-                #     imp_arousal, scaler_arousal, rfe_arousal, model_arousal
-                # )
-                # valence = process.predict(
-                #     imp_valence, scaler_valence, rfe_valence, model_valence
-                # )
-                if video != "end":
-                    if len(video.split("/")) > 1:
-                        writer.writerow(["Category", video.split("/")[1], category[0]])
+        try:
+            while bool(sync.startAcquisition.value):
+                if sync.markers_queue.qsize() > 0:
+                    video, marker = sync.markers_queue.get()
+                    print("Video = " + str(video))
+                    if video == "end":
+                        sync.startAcquisition.value = 0
+                if sync.arousal_queue.qsize() > 0:
+                    true_arousal = sync.arousal_queue.get()
+                    try:
+                        arousal = process.predict(
+                            imp_arousal, scaler_arousal, rfe_arousal, model_arousal
+                        )
+                    except Exception as e:
+                        print(e)
                     else:
-                        writer.writerow(["Category", video])
-                        # writer.writerow(["Valence", valence[0]])
-                        # writer.writerow(["Arousal", arousal[0]])
-                print(
-                    "True Category = "
-                    + str(video)
-                    + " , Category Prediction = "
-                    + category
-                )
-                sync.sendBuffer.value = 1
-
-        f.close()
-        sync.terminate()
-        sync.join()
+                        writer.writerow(["Arousal", str(true_arousal), arousal[0]])
+                    print(
+                        "True Arousal = "
+                        + str(true_arousal)
+                        + " , Arousal Prediction = "
+                        + str(arousal)
+                    )
+                if sync.valence_queue.qsize() > 0:
+                    true_valence = sync.valence_queue.get()
+                    try:
+                        valence = process.predict(
+                            imp_valence, scaler_valence, rfe_valence, model_valence
+                        )
+                    except Exception as e:
+                        print(e)
+                    else:
+                        writer.writerow(["Valence", str(true_valence), valence[0]])
+                    print(
+                        "True Valence = "
+                        + str(true_valence)
+                        + " , Valence Prediction = "
+                        + str(valence)
+                    )
+                # If there is data in the buffer queue from Sync, send to Process.
+                if sync.buffer_queue.qsize() > 0:
+                    sync.sendBuffer.value = 0
+                    process.data = sync.buffer_queue.get()
+                    process.features = process.processData()
+                    process.features = process.features.sub(dataframe_baseline)
+                    category = process.predict(imp, scaler, rfe, model)
+                    # arousal = process.predict(
+                    #     imp_arousal, scaler_arousal, rfe_arousal, model_arousal
+                    # )
+                    # valence = process.predict(
+                    #     imp_valence, scaler_valence, rfe_valence, model_valence
+                    # )
+                    if video != "end":
+                        if len(video.split("/")) > 1:
+                            writer.writerow(
+                                ["Category", video.split("/")[1], category[0]]
+                            )
+                        else:
+                            writer.writerow(["Category", video])
+                            # writer.writerow(["Valence", valence[0]])
+                            # writer.writerow(["Arousal", arousal[0]])
+                    print(
+                        "True Category = "
+                        + str(video)
+                        + " , Category Prediction = "
+                        + category
+                    )
+                    sync.sendBuffer.value = 1
+        except Exception as e:
+            print(e)
+        finally:
+            f.close()
+            sync.terminate()
+            sync.join()
 
 
 if __name__ == "__main__":
