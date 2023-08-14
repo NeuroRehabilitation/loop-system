@@ -12,7 +12,7 @@ class Manager:
         participant = "P0"
         path = folder + participant
 
-        f = open(path + "\\output.csv", "w")
+        f = open(path + "\\output_stimuli.csv", "w")
         writer = csv.writer(f)
         header = ["Variable", "True Value", "Prediction"]
         writer.writerow(header)
@@ -79,8 +79,19 @@ class Manager:
                 process.features = process.processData()
                 process.features = process.features.sub(dataframe_baseline)
                 category = process.predict(imp, scaler, rfe, model)
+                # arousal = process.predict(
+                #     imp_arousal, scaler_arousal, rfe_arousal, model_arousal
+                # )
+                # valence = process.predict(
+                #     imp_valence, scaler_valence, rfe_valence, model_valence
+                # )
                 if video != "end":
-                    writer.writerow(["Category", video.split("/")[1], category[0]])
+                    if len(video.split("/")) > 1:
+                        writer.writerow(["Category", video.split("/")[1], category[0]])
+                    else:
+                        writer.writerow(["Category", video])
+                        # writer.writerow(["Valence", valence[0]])
+                        # writer.writerow(["Arousal", arousal[0]])
                 print(
                     "True Category = "
                     + str(video)
