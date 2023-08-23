@@ -1,3 +1,5 @@
+import pandas as pd
+
 from Sync import *
 from Process import *
 import warnings
@@ -28,6 +30,9 @@ class Manager:
         sync.start()
         sync.startAcquisition.value = 1
         sync.sendBuffer.value = 1
+
+        previousDataframe = pd.DataFrame()
+
         try:
             imp, scaler, rfe, model = process.loadModels(path)
         except Exception as e:
@@ -83,14 +88,15 @@ class Manager:
                         )
                     except Exception as e:
                         print(e)
+                        pass
                     else:
                         writer.writerow(["Arousal", str(true_arousal), arousal[0]])
-                    print(
-                        "True Arousal = "
-                        + str(true_arousal)
-                        + " , Arousal Prediction = "
-                        + str(arousal)
-                    )
+                        print(
+                            "True Arousal = "
+                            + str(true_arousal)
+                            + " , Arousal Prediction = "
+                            + str(arousal)
+                        )
                 if sync.valence_queue.qsize() > 0:
                     true_valence = sync.valence_queue.get()
                     try:
@@ -99,20 +105,31 @@ class Manager:
                         )
                     except Exception as e:
                         print(e)
+                        pass
                     else:
                         writer.writerow(["Valence", str(true_valence), valence[0]])
-                    print(
-                        "True Valence = "
-                        + str(true_valence)
-                        + " , Valence Prediction = "
-                        + str(valence)
-                    )
+                        print(
+                            "True Valence = "
+                            + str(true_valence)
+                            + " , Valence Prediction = "
+                            + str(valence)
+                        )
                 # If there is data in the buffer queue from Sync, send to Process.
                 if sync.buffer_queue.qsize() > 0:
                     sync.sendBuffer.value = 0
                     process.data = sync.buffer_queue.get()
+                    previousDataframe = process.features
                     process.features = process.processData()
-                    process.features = process.features.sub(dataframe_baseline)
+                    if process.features.isnull().values.any():
+                        for column in process.features.columns:
+                            if process.features[column].isnull():
+                                process.features[column] = previousDataframe[column]
+                                process.features = process.features.sub(
+                                    dataframe_baseline
+                                )
+                    else:
+                        process.features = process.features.sub(dataframe_baseline)
+
                     category = process.predict(imp, scaler, rfe, model)
                     # arousal = process.predict(
                     #     imp_arousal, scaler_arousal, rfe_arousal, model_arousal
