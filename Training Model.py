@@ -26,12 +26,8 @@ os.chdir(path)
 
 for root, dirs, files in os.walk(path):
     for fname in files:
-        try:
-            if fname.endswith(".xdf"):
-                users[fname] = Run_files(fname)
-        except Exception as e:
-            print(e)
-            print("No .xdf file!")
+        if fname.endswith(".xdf"):
+            users[fname] = Run_files(fname)
 
 Opensignals_fs = 100
 EEG_fs = 250
@@ -69,26 +65,19 @@ features_EEG = getEEGBands(EEG_dict, EEG_fs)
 features_epochs_EEG, features_baseline_EEG = getEEGDict(features_EEG)
 
 """Biosignalsplux Processing"""
-try:
-    Signals_epochs = getSignalsEpochs(data, onset_index, events_diff, Opensignals_fs)
-    Signals = getVideosDict(Signals_epochs, videos)
-    features_signals = getFeatures(Signals, Opensignals_fs, resolution)
-    features_epochs, df_baseline = getFeaturesEpochs(features_signals)
-except Exception as e:
-    print(e)
-finally:
-    df_baseline[participant].to_csv(path + "\\baseline.csv", sep=";")
+
+Signals_epochs = getSignalsEpochs(data, onset_index, events_diff, Opensignals_fs)
+Signals = getVideosDict(Signals_epochs, videos)
+features_signals = getFeatures(Signals, Opensignals_fs, resolution)
+features_epochs, df_baseline = getFeaturesEpochs(features_signals)
+df_baseline[participant].to_csv(path + "\\baseline.csv", sep=";")
 
 """Dataframes"""
-try:
-    dataframe_EEG, EEG_baseline = getEEGDataframe(
-        features_epochs_EEG, features_baseline_EEG
-    )
-    dataframe = getSignalsDataframe(features_epochs)
-except Exception as e:
-    print(e)
-finally:
-    EEG_baseline.to_csv(path + "\\EEGbaseline.csv", sep=";")
+dataframe_EEG, EEG_baseline = getEEGDataframe(
+    features_epochs_EEG, features_baseline_EEG
+)
+dataframe = getSignalsDataframe(features_epochs)
+EEG_baseline.to_csv(path + "\\EEGbaseline.csv", sep=";")
 
 """Concatenate Dataframes"""
 columns = dataframe.columns[: (len(dataframe.columns) - 2)]
