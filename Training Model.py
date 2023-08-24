@@ -1,13 +1,16 @@
+import warnings
 from Signals_Processing import *
 from sklearn.preprocessing import StandardScaler
 from sklearn.impute import SimpleImputer
 from sklearn import ensemble, feature_selection
 import pickle
 
+warnings.filterwarnings("ignore")
+
 """Load Data from Folder"""
 
 folder = os.getcwd() + "\\Training Models\\"
-participant = "P5"
+participant = "P1"
 path = folder + participant
 
 os.chdir(path)

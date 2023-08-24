@@ -118,11 +118,11 @@ class Manager:
                 if sync.buffer_queue.qsize() > 0:
                     sync.sendBuffer.value = 0
                     process.data = sync.buffer_queue.get()
-                    previousDataframe = process.features
                     process.features = process.processData()
+                    previousDataframe = process.processData()
                     if process.features.isnull().values.any():
                         for column in process.features.columns:
-                            if process.features[column].isnull():
+                            if process.features[column].isnull().any():
                                 process.features[column] = previousDataframe[column]
                                 process.features = process.features.sub(
                                     dataframe_baseline
