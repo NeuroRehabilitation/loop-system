@@ -11,7 +11,7 @@ warnings.filterwarnings("ignore")
 class Manager:
     def run(self):
         folder = os.getcwd() + "\\Training Models\\"
-        participant = "P0"
+        participant = "P2"
         path = folder + participant
 
         try:
@@ -130,28 +130,31 @@ class Manager:
                     else:
                         process.features = process.features.sub(dataframe_baseline)
 
-                    category = process.predict(imp, scaler, rfe, model)
-                    # arousal = process.predict(
-                    #     imp_arousal, scaler_arousal, rfe_arousal, model_arousal
-                    # )
-                    # valence = process.predict(
-                    #     imp_valence, scaler_valence, rfe_valence, model_valence
-                    # )
+                    # category = process.predict(imp, scaler, rfe, model)
+                    arousal = process.predict(
+                        imp_arousal, scaler_arousal, rfe_arousal, model_arousal
+                    )
+                    valence = process.predict(
+                        imp_valence, scaler_valence, rfe_valence, model_valence
+                    )
                     if video != "end":
                         if len(video.split("/")) > 1:
-                            writer.writerow(
-                                ["Category", video.split("/")[1], category[0]]
-                            )
+                            # writer.writerow(
+                            #     ["Category", video.split("/")[1], category[0]]
+                            # )
+                            pass
                         else:
-                            writer.writerow(["Category", video])
-                            # writer.writerow(["Valence", valence[0]])
-                            # writer.writerow(["Arousal", arousal[0]])
-                    print(
-                        "True Category = "
-                        + str(video)
-                        + " , Category Prediction = "
-                        + category
-                    )
+                            # writer.writerow(["Category", video])
+                            writer.writerow([video, "Valence", valence[0]])
+                            writer.writerow([video, "Arousal", arousal[0]])
+                    # print(
+                    #     "True Category = "
+                    #     + str(video)
+                    #     + " , Category Prediction = "
+                    #     + category
+                    # )
+                    print("Valence Prediction = " + str(valence))
+                    print("Arousal Prediction = " + str(arousal))
                     sync.sendBuffer.value = 1
         except Exception as e:
             print(e)
