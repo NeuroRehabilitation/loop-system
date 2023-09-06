@@ -10,7 +10,7 @@ warnings.filterwarnings("ignore")
 """Load Data from Folder"""
 
 folder = os.getcwd() + "\\Training Models\\"
-participant = "P2"
+participant = "P0"
 path = folder + participant
 
 os.chdir(path)
