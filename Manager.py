@@ -11,11 +11,11 @@ warnings.filterwarnings("ignore")
 class Manager:
     def run(self):
         folder = os.getcwd() + "\\Training Models\\"
-        participant = "P2"
+        participant = "P0"
         path = folder + participant
 
         try:
-            f = open(path + "\\output_stimuli.csv", "w")
+            f = open(path + "\\output_test.csv", "w")
         except Exception as e:
             print(e)
         writer = csv.writer(f)
@@ -120,17 +120,19 @@ class Manager:
                     process.data = sync.buffer_queue.get()
                     process.features = process.processData()
                     previousDataframe = process.processData()
-                    if process.features.isnull().values.any():
-                        for column in process.features.columns:
-                            if process.features[column].isnull().any():
-                                process.features[column] = previousDataframe[column]
-                                process.features = process.features.sub(
-                                    dataframe_baseline
-                                )
-                    else:
-                        process.features = process.features.sub(dataframe_baseline)
-
-                    # category = process.predict(imp, scaler, rfe, model)
+                    # if process.features.isnull().values.any():
+                    #     for column in process.features.columns:
+                    #         if process.features[column].isnull().any():
+                    #             print("NULL")
+                    #             process.features[column] = previousDataframe[column]
+                    #             process.features = process.features.sub(
+                    #                 dataframe_baseline
+                    #             )
+                    # else:
+                    #     process.features = process.features.sub(dataframe_baseline)
+                    process.features = process.features.sub(dataframe_baseline)
+                    print(process.features)
+                    category = process.predict(imp, scaler, rfe, model)
                     arousal = process.predict(
                         imp_arousal, scaler_arousal, rfe_arousal, model_arousal
                     )
@@ -144,22 +146,23 @@ class Manager:
                             # )
                             pass
                         else:
-                            # writer.writerow(["Category", video])
-                            writer.writerow([video, "Valence", valence[0]])
-                            writer.writerow([video, "Arousal", arousal[0]])
-                    # print(
-                    #     "True Category = "
-                    #     + str(video)
-                    #     + " , Category Prediction = "
-                    #     + category
-                    # )
-                    print("Valence Prediction = " + str(valence))
-                    print("Arousal Prediction = " + str(arousal))
+                            # writer.writerow([video, "Valence", valence[0]])
+                            # writer.writerow([video, "Arousal", arousal[0]])
+                            pass
+                    print(
+                        "True Category = "
+                        + str(video)
+                        + " , Category Prediction = "
+                        + category
+                    )
+                    # print("Valence Prediction = " + str(valence))
+                    # print("Arousal Prediction = " + str(arousal))
                     sync.sendBuffer.value = 1
         except Exception as e:
             print(e)
         finally:
             f.close()
+            print("File Closed")
             sync.terminate()
             sync.join()
 
