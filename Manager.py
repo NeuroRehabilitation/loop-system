@@ -119,17 +119,6 @@ class Manager:
                     sync.sendBuffer.value = 0
                     process.data = sync.buffer_queue.get()
                     process.features = process.processData()
-                    previousDataframe = process.processData()
-                    # if process.features.isnull().values.any():
-                    #     for column in process.features.columns:
-                    #         if process.features[column].isnull().any():
-                    #             print("NULL")
-                    #             process.features[column] = previousDataframe[column]
-                    #             process.features = process.features.sub(
-                    #                 dataframe_baseline
-                    #             )
-                    # else:
-                    #     process.features = process.features.sub(dataframe_baseline)
                     process.features = process.features.sub(dataframe_baseline)
                     print(process.features)
                     category = process.predict(imp, scaler, rfe, model)
