@@ -15,10 +15,16 @@ class Manager:
         path = folder + participant
 
         try:
-            f = open(path + "\\output_test.csv", "w")
+            f = open(path + "\\output_test.csv", "w", newline="")
+            process_features_file = open(
+                path + "\\pocess_features.csv", "w", newline=""
+            )
+            final_features_file = open(path + "\\final_features.csv", "w", newline="")
         except Exception as e:
             print(e)
         writer = csv.writer(f)
+        process_features_writer = csv.writer(process_features_file)
+        final_features_writer = csv.writer(final_features_file)
         header = ["Variable", "True Value", "Prediction"]
         writer.writerow(header)
 
@@ -30,8 +36,6 @@ class Manager:
         sync.start()
         sync.startAcquisition.value = 1
         sync.sendBuffer.value = 1
-
-        previousDataframe = pd.DataFrame()
 
         try:
             imp, scaler, rfe, model = process.loadModels(path)
@@ -69,6 +73,8 @@ class Manager:
             print(e)
 
         dataframe_baseline = pd.concat([EEGbaseline, baseline], axis=1)
+        process_features_writer.writerow(dataframe_baseline.columns)
+        final_features_writer.writerow(dataframe_baseline.columns)
         # Get streams information
         process.info = sync.info_queue.get()
 
@@ -119,20 +125,22 @@ class Manager:
                     sync.sendBuffer.value = 0
                     process.data = sync.buffer_queue.get()
                     process.features = process.processData()
+                    process_features_writer.writerow(process.features.loc[0])
                     process.features = process.features.sub(dataframe_baseline)
-                    print(process.features)
+                    final_features_writer.writerow(process.features.loc[0])
+                    # print(process.features)
                     category = process.predict(imp, scaler, rfe, model)
-                    arousal = process.predict(
-                        imp_arousal, scaler_arousal, rfe_arousal, model_arousal
-                    )
-                    valence = process.predict(
-                        imp_valence, scaler_valence, rfe_valence, model_valence
-                    )
+                    # arousal = process.predict(
+                    #     imp_arousal, scaler_arousal, rfe_arousal, model_arousal
+                    # )
+                    # valence = process.predict(
+                    #     imp_valence, scaler_valence, rfe_valence, model_valence
+                    # )
                     if video != "end":
                         if len(video.split("/")) > 1:
-                            # writer.writerow(
-                            #     ["Category", video.split("/")[1], category[0]]
-                            # )
+                            writer.writerow(
+                                ["Category", video.split("/")[1], category[0]]
+                            )
                             pass
                         else:
                             # writer.writerow([video, "Valence", valence[0]])
@@ -151,6 +159,8 @@ class Manager:
             print(e)
         finally:
             f.close()
+            process_features_file.close()
+            final_features_file.close()
             print("File Closed")
             sync.terminate()
             sync.join()
