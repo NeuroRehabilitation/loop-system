@@ -9,6 +9,8 @@ __pycache__/
 
 #Folders
 /Training Models/
+*.csv
+*.xlsx
 
 # Distribution / packaging
 .Python

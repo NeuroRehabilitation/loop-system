@@ -59,14 +59,12 @@ class Processing:
             if stream["Name"] == "openvibeSignal":
                 try:
                     fs = stream["Sampling Rate"]
-                    # EEG_filtered = filterEEG(self.data["openvibeSignal"], fs)
-                    # print(EEG_filtered)
+
                     EEG_dict = {}
                     for i, key in enumerate(self.data["openvibeSignal"]):
                         try:
                             if i > 0 and i < 33:
                                 channel = "EEG_" + str(i)
-                                #         sensor = EEG(self.data["openvibeSignal"][key], fs, 16)
                                 EEG_dict[channel] = EEG.frequencyAnalysis(
                                     EEG.filterData(
                                         EEG.ICA(self.data["openvibeSignal"][key]), fs
@@ -92,8 +90,6 @@ class Processing:
                     print(e)
                 finally:
                     return self.features
-                # print(EEG_Dataframe)
-                # print(self.features)
 
     def processData(self):
         self.features = pd.DataFrame()
