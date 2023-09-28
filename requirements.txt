@@ -78,7 +78,7 @@ notebook_shim @ file:///C:/b/abs_ebfczttg6x/croot/notebook-shim_1668160590914/wo
 numba==0.58.0
 numpy @ file:///C:/b/abs_53f_dbvhzc/croot/numpy_and_numpy_base_1665773185489/work
 oauthlib==3.2.2
-opencv-python==4.8.0.76
+opencv-python==4.8.1.78
 packaging==23.1
 pandas~=2.1.1
 pandocfilters @ file:///opt/conda/conda-bld/pandocfilters_1643405455980/work
