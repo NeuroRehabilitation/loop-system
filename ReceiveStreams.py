@@ -9,9 +9,8 @@ class ReceiveStreams(multiprocessing.Process):
         # List of names,information and inlet of the streams
         (
             self.stream_names,
-            self.streams_inlet,
             self.streams_info,
-        ) = ([], [], [])
+        ) = ([], [])
 
         # data_queue - Queue to put the data to send to Sync
         # info_queue - Queue to put the information of the streams to send to Sync
@@ -46,7 +45,7 @@ class ReceiveStreams(multiprocessing.Process):
         stream.start()
         print(f"Process Started {stream.name}")
 
-        return stream, inlet_info
+        return inlet_info
 
     def stopChildProcesses(self):
         # get all active child processes
@@ -64,6 +63,6 @@ class ReceiveStreams(multiprocessing.Process):
 
         # For each stream available start the process of the stream and put the information in the info_queue
         for name in self.stream_names:
-            stream, inlet_info = self.startProcess(name)
+            inlet_info = self.startProcess(name)
             self.streams_info.append(inlet_info)
         self.info_queue.put(self.streams_info)
