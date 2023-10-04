@@ -1,5 +1,7 @@
 from ReceiveStreams import *
 import time
+from collections import deque
+import numpy as np
 
 
 class Sync(multiprocessing.Process):
@@ -50,6 +52,8 @@ class Sync(multiprocessing.Process):
         # Buffer window in seconds
         self.buffer_window = buffer_window
 
+        self.first_timestamp = 0
+
     def startStreams(self):
         """
         Function to instantiate class ReceiveStreams and start the process ReceiveStreams;
@@ -85,7 +89,7 @@ class Sync(multiprocessing.Process):
         columns_labels = ["Timestamps"]
         for key in stream_info["Channels Info"].keys():
             columns_labels.append(stream_info["Channels Info"][key][0])
-        dict = {key: [] for key in columns_labels}
+        dict = {key: deque() for key in columns_labels}
 
         return dict
 
@@ -142,7 +146,7 @@ class Sync(multiprocessing.Process):
         for key in self.synced_dict[stream_name].keys():
             self.synced_dict[stream_name][key].pop(0)
 
-    def syncStreams(self, first_timestamp: int) -> None:
+    def syncStreams(self, data: tuple, stream_name: str) -> None:
         """Synchronize streams:
             check if the timestamps from all the streams are higher than the minimum timestamp.
             Streams are synchronized if condition is true.
@@ -150,13 +154,18 @@ class Sync(multiprocessing.Process):
         :param first_timestamp: minimum timestamp of all the streams
         :type first_timestamp: int
         """
-
-        if first_timestamp == 0 and len(self.timestamps.values()) > 0:
-            first_timestamp = min(self.timestamps.values())
-        if first_timestamp != 0:
-            if all(i >= first_timestamp for i in self.timestamps.values()):
-                self.isSync = True
-                print("Streams are Synced.")
+        if not self.isSync:
+            self.timestamps[stream_name] = data[1]
+            print(self.timestamps.values())
+            print(f"First = {self.first_timestamp}")
+            if len(self.timestamps.values()) > 1:
+                if self.first_timestamp == 0:
+                    print("ola")
+                    self.first_timestamp = max(self.timestamps.values())
+                else:
+                    if all(i >= self.first_timestamp for i in self.timestamps.values()):
+                        self.isSync = True
+                        print("Streams are Synced.")
 
     def getBuffers(self, data: tuple, stream_name: str) -> None:
         """
@@ -167,11 +176,8 @@ class Sync(multiprocessing.Process):
         :type stream_name: str
 
         """
-        # If the data is not synchronized keep putting the timestamps from each stream on the dictionary self.timestamps
-        if not self.isSync:
-            self.timestamps[stream_name] = data[1]
         # In case of the data being synchronized
-        else:
+        if self.isSync:
             if self.isFirstBuffer:  # In case it is the first buffer of data
                 self.fillData(data, stream_name)
                 # Fills the first buffer of data with data
@@ -209,7 +215,6 @@ class Sync(multiprocessing.Process):
         # Get the information from the streams
         self.getStreamsInfo(streams_receiver)
 
-        first_timestamp = 0
         start_time = time.time()
         # For every streams available create and fill the dictionary synced_dict with:
         # Name of the stream, Maximum Size of the buffers, Number of channels filled with data
@@ -223,27 +228,23 @@ class Sync(multiprocessing.Process):
 
         # Loop to receive the data - start acquisition is true
         while bool(self.startAcquisition.value):
-            # stream_name, data = streams_receiver.data_queue.get()
 
-            # print(f"Size = {streams_receiver.data_queue.qsize()}")
-            # If data is not synced, retrieve data from the queue but don't use it
             # Synchronize the data
             if not self.isSync:
                 stream_name, data = streams_receiver.data_queue.get()
-                self.getBuffers(data, stream_name)
-                self.syncStreams(first_timestamp)
-                if "PsychoPy" in stream_name:
-                    self.getPsychoPyData(data, stream_name)
-            if self.isSync:
-                stream_name, data = streams_receiver.data_queue.get()
-                if "PsychoPy" in stream_name:
-                    self.getPsychoPyData(data, stream_name)
-                else:
-                    self.getBuffers(data, stream_name)
-
-                if self.isFirstBuffer == False:
-                    with self.lock:
-                        self.buffer_queue.put(self.synced_dict)
+                self.syncStreams(data, stream_name)
+                # if "PsychoPy" in stream_name:
+                #     self.getPsychoPyData(data, stream_name)
+            # if self.isSync:
+            #     stream_name, data = streams_receiver.data_queue.get()
+            #     if "PsychoPy" in stream_name:
+            #         self.getPsychoPyData(data, stream_name)
+            #     else:
+            #         self.getBuffers(data, stream_name)
+            #
+            #     if self.isFirstBuffer == False:
+            #         with self.lock:
+            #             self.buffer_queue.put(self.synced_dict)
 
         # Stop all running child processes
         streams_receiver.stopChildProcesses()
