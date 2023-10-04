@@ -1,12 +1,5 @@
-import multiprocessing
-
 from ReceiveStreams import *
-
-# from Plot import *
 import time
-import random
-
-# import main
 
 
 class Sync(multiprocessing.Process):
@@ -41,7 +34,7 @@ class Sync(multiprocessing.Process):
         self.streams_info = []
 
         # Dictionaries to organize the data of all the streams
-        self.synced_dict, self.info_dict, self.timestamps = {}, {}, {}
+        self.synced_dict, self.information, self.timestamps = {}, {}, {}
 
         # Flag to check if buffers are synced, if it is the first buffer of data
         self.isSync, self.isFirstBuffer = False, True
@@ -49,6 +42,7 @@ class Sync(multiprocessing.Process):
         # Flag to start the acquisition of data by the Manager.
         self.startAcquisition = multiprocessing.Value("i", 0)
         self.sendBuffer = multiprocessing.Value("i", 0)
+        self.lock = multiprocessing.Lock()
 
         # Number of full buffers from all the streams
         self.n_full_buffers = 0
@@ -56,7 +50,7 @@ class Sync(multiprocessing.Process):
         # Buffer window in seconds
         self.buffer_window = buffer_window
 
-    def getStreams(self):
+    def startStreams(self):
         """
         Function to instantiate class ReceiveStreams and start the process ReceiveStreams;
 
@@ -118,7 +112,7 @@ class Sync(multiprocessing.Process):
         :rtype: int
         """
 
-        return int(self.buffer_window * self.info_dict[stream_name]["Sampling Rate"])
+        return int(self.buffer_window * self.information[stream_name]["Sampling Rate"])
 
     def checkBufferSize(self, max_size: int, stream_name: str) -> None:
         """Check if buffers are synchronized and then check the size of the buffers for every stream
@@ -128,16 +122,15 @@ class Sync(multiprocessing.Process):
         :param stream_name: name of the stream
         :type stream_name: str
         """
-
         if self.isSync:
-            if self.info_dict[stream_name]["Number full arrays"] == len(
+            if self.information[stream_name]["Number full arrays"] == len(
                 self.synced_dict[stream_name].keys()
             ):
                 self.n_full_buffers += 1
             else:
                 for key in self.synced_dict[stream_name].keys():
                     if len(self.synced_dict[stream_name][key]) == max_size:
-                        self.info_dict[stream_name]["Number full arrays"] += 1
+                        self.information[stream_name]["Number full arrays"] += 1
 
     def slidingWindow(self, stream_name: str) -> None:
         """Create Sliding window to remove the oldest element of the array (index 0) and add the newest sample value
@@ -191,7 +184,7 @@ class Sync(multiprocessing.Process):
                     else:
                         # If buffers are not full keep checking the size of the buffers
                         self.checkBufferSize(
-                            self.info_dict[stream_name]["Max Size"],
+                            self.information[stream_name]["Max Size"],
                             stream_name,
                         )
             else:
@@ -209,53 +202,38 @@ class Sync(multiprocessing.Process):
             else:
                 self.valence_queue.put(data[0][1])
 
-    def fill_any(self, i):
-        fill_var = []
-        while len(fill_var) < i:
-            fill_var.append(0)
-        return fill_var
-
-    def SendData_To_Display(self, q, data):
-        q.put(data)
-        # print("DATA SENT : ", data, ".\n")
-        time.sleep(0.01)
-
     def run(self):
-        # q = multiprocessing.Queue()
-        # data_stream = self.fill_any(10000)
-        # q.put(data_stream)
-
-        # p2 = multiprocessing.Process(target=main.Run, args=(q,))
-        # p2.start()
-
         # Start all the available streams
-        streams_receiver = self.getStreams()
+        streams_receiver = self.startStreams()
 
         # Get the information from the streams
         self.getStreamsInfo(streams_receiver)
+
         first_timestamp = 0
         start_time = time.time()
         # For every streams available create and fill the dictionary synced_dict with:
         # Name of the stream, Maximum Size of the buffers, Number of channels filled with data
         for stream in self.streams_info:
             self.synced_dict[stream["Name"]] = self.createDict(stream)
-            self.info_dict[stream["Name"]] = stream
-            self.info_dict[stream["Name"]]["Max Size"] = self.getBufferMaxSize(
+            self.information[stream["Name"]] = stream
+            self.information[stream["Name"]]["Max Size"] = self.getBufferMaxSize(
                 stream["Name"]
             )
-            self.info_dict[stream["Name"]]["Number full arrays"] = 0
+            self.information[stream["Name"]]["Number full arrays"] = 0
 
         # Loop to receive the data - start acquisition is true
         while bool(self.startAcquisition.value):
+            # stream_name, data = streams_receiver.data_queue.get()
+
+            # print(f"Size = {streams_receiver.data_queue.qsize()}")
             # If data is not synced, retrieve data from the queue but don't use it
             # Synchronize the data
             if not self.isSync:
-                stream_name, data_temp = streams_receiver.data_queue.get()
-                self.getBuffers(data_temp, stream_name)
+                stream_name, data = streams_receiver.data_queue.get()
+                self.getBuffers(data, stream_name)
                 self.syncStreams(first_timestamp)
                 if "PsychoPy" in stream_name:
-                    self.getPsychoPyData(data_temp, stream_name)
-
+                    self.getPsychoPyData(data, stream_name)
             if self.isSync:
                 stream_name, data = streams_receiver.data_queue.get()
                 if "PsychoPy" in stream_name:
@@ -263,14 +241,21 @@ class Sync(multiprocessing.Process):
                 else:
                     self.getBuffers(data, stream_name)
 
-                if bool(self.sendBuffer.value) and self.isFirstBuffer == False:
-                    self.buffer_queue.put(self.synced_dict)
-
-            # data_stream.pop(0)
-            # data_stream.append(data[0][1])
-            # self.SendData_To_Display(q, data_stream)
+                if self.isFirstBuffer == False:
+                    with self.lock:
+                        self.buffer_queue.put(self.synced_dict)
 
         # Stop all running child processes
         streams_receiver.stopChildProcesses()
         streams_receiver.terminate()
         streams_receiver.join()
+
+
+if __name__ == "__main__":
+    # Instantiate object from class Sync and Processing
+    sync = Sync(buffer_window=40)
+
+    # Start process Sync and put flag startAcquisition as True
+    sync.start()
+    sync.startAcquisition.value = 1
+    sync.sendBuffer.value = 1
