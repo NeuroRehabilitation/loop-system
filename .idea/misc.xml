@@ -2,7 +2,7 @@
 <project version="4">
   <component name="Black">
     <option name="enabledOnSave" value="true" />
-    <option name="sdkUUID" value="4de6660d-adc3-4ab1-aa26-109ed004a85b" />
+    <option name="sdkName" value="Python 3.10 (Loop System)" />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.10 (Loop System)" project-jdk-type="Python SDK" />
   <component name="PyCharmProfessionalAdvertiser">
