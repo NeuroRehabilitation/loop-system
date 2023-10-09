@@ -1,3 +1,5 @@
+import multiprocessing
+
 import pandas as pd
 
 from Sync import *
@@ -8,7 +10,7 @@ import csv
 warnings.filterwarnings("ignore")
 
 
-class Manager:
+class Manager(multiprocessing.Process):
     def run(self):
         folder = os.getcwd() + "\\Training Models\\"
         participant = "P0"
@@ -17,7 +19,7 @@ class Manager:
         try:
             f = open(path + "\\output_test.csv", "w", newline="")
             process_features_file = open(
-                path + "\\pocess_features.csv", "w", newline=""
+                path + "\\process_features.csv", "w", newline=""
             )
             final_features_file = open(path + "\\final_features.csv", "w", newline="")
         except Exception as e:
@@ -36,6 +38,7 @@ class Manager:
         sync.start()
         sync.startAcquisition.value = 1
         sync.sendBuffer.value = 1
+        i = 0
 
         try:
             imp, scaler, rfe, model = process.loadModels(path)
@@ -75,18 +78,18 @@ class Manager:
         dataframe_baseline = pd.concat([EEGbaseline, baseline], axis=1)
         process_features_writer.writerow(dataframe_baseline.columns)
         final_features_writer.writerow(dataframe_baseline.columns)
+
         # Get streams information
         process.info = sync.info_queue.get()
-        i = 0
+
         # While is acquiring data
         try:
             while bool(sync.startAcquisition.value):
-                signals_list = []
-                # if sync.markers_queue.qsize() > 0:
-                #     video, marker = sync.markers_queue.get()
-                #     print("Video = " + str(video))
-                #     if video == "end":
-                #         sync.startAcquisition.value = 0
+                if sync.markers_queue.qsize() > 0:
+                    video, marker = sync.markers_queue.get()
+                    print("Video = " + str(video))
+                    if video == "end":
+                        sync.startAcquisition.value = 0
                 if sync.arousal_queue.qsize() > 0:
                     true_arousal = sync.arousal_queue.get()
                     try:
@@ -98,12 +101,12 @@ class Manager:
                         pass
                     else:
                         writer.writerow(["Arousal", str(true_arousal), arousal[0]])
-                        # print(
-                        #     "True Arousal = "
-                        #     + str(true_arousal)
-                        #     + " , Arousal Prediction = "
-                        #     + str(arousal)
-                        # )
+                        print(
+                            "True Arousal = "
+                            + str(true_arousal)
+                            + " , Arousal Prediction = "
+                            + str(arousal)
+                        )
                 if sync.valence_queue.qsize() > 0:
                     true_valence = sync.valence_queue.get()
                     try:
@@ -115,60 +118,55 @@ class Manager:
                         pass
                     else:
                         writer.writerow(["Valence", str(true_valence), valence[0]])
-                        # print(
-                        #     "True Valence = "
-                        #     + str(true_valence)
-                        #     + " , Valence Prediction = "
-                        #     + str(valence)
-                        # )
+                        print(
+                            "True Valence = "
+                            + str(true_valence)
+                            + " , Valence Prediction = "
+                            + str(valence)
+                        )
+
                 # If there is data in the buffer queue from Sync, send to Process.
                 if sync.buffer_queue.qsize() > 0:
-                    with sync.lock:
-                        # sync.sendBuffer.value = 0
-                        print("Manager")
-                        print("Queue Size = " + str(sync.buffer_queue.qsize()))
-                        process.data = sync.buffer_queue.get()
-                        print("Queue Size = " + str(sync.buffer_queue.qsize()))
-                        i += 1
-                        print(i)
-                        print(pd.DataFrame.from_dict(process.data["OpenSignals"]))
-                        pd.DataFrame.from_dict(process.data["OpenSignals"]).to_csv(
-                            path + "\\Signals\\sample" + str(i) + ".csv",
-                            index=False,
-                            header=True,
-                        )
-                        process.features = process.processData()
-                        print(process.features)
-                        process_features_writer.writerow(process.features.loc[0])
-                        process.features = process.features.sub(dataframe_baseline)
-                        final_features_writer.writerow(process.features.loc[0])
-                        category = process.predict(imp, scaler, rfe, model)
-                        # arousal = process.predict(
-                        #     imp_arousal, scaler_arousal, rfe_arousal, model_arousal
-                        # )
-                        # valence = process.predict(
-                        #     imp_valence, scaler_valence, rfe_valence, model_valence
-                        # )
-                        # if video != "end":
-                        #     if len(video.split("/")) > 1:
-                        #         writer.writerow(
-                        #             ["Category", video.split("/")[1], category[0]]
-                        #         )
-                        #         pass
-                        #     else:
-                        #         # writer.writerow([video, "Valence", valence[0]])
-                        #         # writer.writerow([video, "Arousal", arousal[0]])
-                        #         pass
-                        # print(
-                        #     "True Category = "
-                        #     + str(video)
-                        #     + " , Category Prediction = "
-                        #     + category
-                        # )
-                        # print("Valence Prediction = " + str(valence))
-                        # print("Arousal Prediction = " + str(arousal))
-                        # sync.sendBuffer.value = 1
-                        print("end")
+                    sync.sendBuffer.value = 0
+                    # print("Manager")
+                    process.data = sync.buffer_queue.get()
+                    i += 1
+                    pd.DataFrame.from_dict(process.data["OpenSignals"]).to_csv(
+                        path + "\\Signals\\" + str(i) + ".csv",
+                        index=False,
+                        header=True,
+                    )
+                    process.features = process.processData()
+                    process_features_writer.writerow(process.features.loc[0])
+                    process.features = process.features.sub(dataframe_baseline)
+                    final_features_writer.writerow(process.features.loc[0])
+                    category = process.predict(imp, scaler, rfe, model)
+                    # arousal = process.predict(
+                    #     imp_arousal, scaler_arousal, rfe_arousal, model_arousal
+                    # )
+                    # valence = process.predict(
+                    #     imp_valence, scaler_valence, rfe_valence, model_valence
+                    # )
+                    if video != "end":
+                        if len(video.split("/")) > 1:
+                            writer.writerow(
+                                ["Category", video.split("/")[1], category[0]]
+                            )
+                            pass
+                        else:
+                            # writer.writerow([video, "Valence", valence[0]])
+                            # writer.writerow([video, "Arousal", arousal[0]])
+                            pass
+                    print(
+                        "True Category = "
+                        + str(video)
+                        + " , Category Prediction = "
+                        + category
+                    )
+                    # print("Valence Prediction = " + str(valence))
+                    # print("Arousal Prediction = " + str(arousal))
+                    sync.sendBuffer.value = 1
+                    # print("end")
         except Exception as e:
             print(e)
         finally:
