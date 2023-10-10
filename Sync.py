@@ -93,6 +93,7 @@ class Sync(multiprocessing.Process):
         :return: dictionary with all the channels from the stream
         :rtype: dict
         """
+
         columns_labels = ["Timestamps"]
         for key in stream_info["Channels Info"].keys():
             columns_labels.append(stream_info["Channels Info"][key][0])
@@ -181,7 +182,7 @@ class Sync(multiprocessing.Process):
         # In case of the data being synchronized
         if self.isSync:
             with self.lock:
-                # print("Get Buffers.")
+                # print("Get Buffer")
                 if "PsychoPy" not in stream_name:
                     # If buffers are not full keep checking the size of the buffers
                     self.checkBufferSize(
@@ -217,12 +218,13 @@ class Sync(multiprocessing.Process):
         # For every streams available create and fill the dictionary synced_dict with:
         # Name of the stream, Maximum Size of the buffers, Number of channels filled with data
         for stream in self.streams_info:
-            self.synced_dict[stream["Name"]] = self.createDict(stream)
-            self.information[stream["Name"]] = stream
-            self.information[stream["Name"]]["Max Size"] = self.getBufferMaxSize(
-                stream["Name"]
-            )
-            self.information[stream["Name"]]["Full Buffer"] = False
+            if "PsychoPy" not in stream["Name"]:
+                self.synced_dict[stream["Name"]] = self.createDict(stream)
+                self.information[stream["Name"]] = stream
+                self.information[stream["Name"]]["Max Size"] = self.getBufferMaxSize(
+                    stream["Name"]
+                )
+                self.information[stream["Name"]]["Full Buffer"] = False
 
         # Loop to receive the data - start acquisition is true
         while bool(self.startAcquisition.value):
@@ -241,11 +243,9 @@ class Sync(multiprocessing.Process):
                         self.getPsychoPyData(data, stream_name)
                     else:
                         self.getBuffers(data, stream_name)
-
             if not self.isFirstBuffer and self.sendBuffer.value == 1:
                 with self.lock:
                     self.buffer_queue.put(self.synced_dict)
-                    print("Send Buffer")
 
         # Stop all running child processes
         streams_receiver.stopChildProcesses()

@@ -50,6 +50,7 @@ class Processing:
 
     def processData(self):
         # print("Process")
+        self.features = pd.DataFrame()
         if "OpenSignals" in self.data.keys():
             dataframe = self.getOpenSignals()
         if "openvibeSignal" in self.data.keys():
