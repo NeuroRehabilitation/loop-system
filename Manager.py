@@ -10,12 +10,13 @@ warnings.filterwarnings("ignore")
 
 class Manager(multiprocessing.Process):
     def run(self):
+        """ """
         folder = os.getcwd() + "\\Training Models\\"
-        participant = "P0"
+        participant = "P1"
         path = folder + participant
 
         try:
-            f = open(path + "\\output_test.csv", "w", newline="")
+            f = open(path + "\\output_stimuli.csv", "w", newline="")
         except Exception as e:
             print(e)
         writer = csv.writer(f)
@@ -176,12 +177,12 @@ class Manager(multiprocessing.Process):
                 writer.writerow([variable[i], true_label[i], predictions[i]])
 
             current_features_df.to_csv(
-                path + "\\current_features.csv",
+                path + "\\current_features_VR.csv",
                 index=False,
                 header=True,
             )
             final_features_df.to_csv(
-                path + "\\final_features.csv",
+                path + "\\final_features_VR.csv",
                 index=False,
                 header=True,
             )

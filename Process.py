@@ -8,6 +8,11 @@ class Processing:
         self.data = {}
 
     def getOpenSignals(self):
+        """
+
+        :return:
+        :rtype:
+        """
         for stream in self.info:
             if stream["Name"] == "OpenSignals":
                 name = stream["Name"]
@@ -25,6 +30,11 @@ class Processing:
         return dataframe
 
     def getOpenvibe(self):
+        """
+
+        :return:
+        :rtype:
+        """
         for stream in self.info:
             if stream["Name"] == "openvibeSignal":
                 fs = stream["Sampling Rate"]
@@ -49,6 +59,11 @@ class Processing:
         return EEG_Dataframe
 
     def processData(self):
+        """
+
+        :return:
+        :rtype:
+        """
         # print("Process")
         self.features = pd.DataFrame()
         if "OpenSignals" in self.data.keys():

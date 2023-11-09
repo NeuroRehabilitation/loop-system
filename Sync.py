@@ -200,6 +200,12 @@ class Sync(multiprocessing.Process):
                         self.fillData(data, stream_name)
 
     def getPsychoPyData(self, data: tuple, stream_name: str) -> None:
+        """
+        :param data:
+        :type data:
+        :param stream_name:
+        :type stream_name:
+        """
         if "Markers" in stream_name:
             self.markers_queue.put(data[0])
         else:
@@ -209,6 +215,7 @@ class Sync(multiprocessing.Process):
                 self.valence_queue.put(data[0][1])
 
     def run(self):
+        """ """
         # Start all the available streams
         streams_receiver = self.startStreams()
 
