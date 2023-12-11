@@ -136,7 +136,6 @@ class Manager(multiprocessing.Process):
 
                     if video != "end":
                         if len(video.split("/")) > 1:
-
                             category = process.predict(imp, scaler, rfe, model)
 
                             variable.append("Category")
