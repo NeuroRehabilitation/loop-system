@@ -16,17 +16,17 @@ B((OpenSignals))
 C((Openvibe)) 
 D((PsychoPy)) 
 A --> B & C & D 
-E((Sync Streams with timestamps )) 
+E((Sync Streams <br/> with timestamps )) 
 B & C & D --> E 
-F((Buffer 40s of data)) 
-E --> |Continuously Update Data| F 
+F((Buffer <br/> 40s of data)) 
+E --> |Continuously <br/> Update Data| F 
 G((Manager)) 
-F --> |QUEUE| G 
-H((Buffers Processing)) 
+F --> |LOCK <br/> QUEUE| G 
+H((Buffers <br/> Processing)) 
 I((Prediction)) 
 G --> H 
 H --> I 
-I --> |QUEUE| G 
+I --> |RELEASE <br/> QUEUE| G 
 ```
 
 ## Here are a brief explanation of the functionality of each class:
