@@ -10,28 +10,23 @@ The system uses parallel processing, therefore each class is a Process in Python
 ## The following chart shows how the system works:
 
 ```mermaid
-flowchart LR
-    A((LSL Streams))
-    B((OpenSignals))
-    C((Openvibe))
-    D((PsychoPy))
-    A --> B & C & D
-    E((Sync Streams
-    with timestamps
-    ))
-    B & C & D --> E
-    F((Buffer
-    40s of data))
-    E --> |Continuously
-    Update Data| F
-    G((Manager))
-    F --> |<i class="fas fa-lock fa-lg"></i> QUEUE| G 
-    H((Buffers 
-     Processing))
-    I((Prediction))
-    G-->H
-    H-->I
-    I--> |<i class="fas fa-lock-open"></i> QUEUE|G
+flowchart LR 
+A((LSL Streams)) 
+B((OpenSignals)) 
+C((Openvibe)) 
+D((PsychoPy)) 
+A --> B & C & D 
+E((Sync Streams with timestamps )) 
+B & C & D --> E 
+F((Buffer 40s of data)) 
+E --> |Continuously Update Data| F 
+G((Manager)) 
+F --> |QUEUE| G 
+H((Buffers Processing)) 
+I((Prediction)) 
+G --> H 
+H --> I 
+I --> |QUEUE| G 
 ```
 
 ## Here are a brief explanation of the functionality of each class:
