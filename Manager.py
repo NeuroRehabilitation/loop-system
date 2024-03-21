@@ -16,7 +16,6 @@ class Manager(multiprocessing.Process):
         self.data_queue = multiprocessing.Queue()
 
     def run(self):
-        print("Manage Started")
         """ """
         folder = os.getcwd() + "\\Breathing Rate\\"
         participant = "P0"
@@ -76,10 +75,9 @@ class Manager(multiprocessing.Process):
                     if not np.isnan(process.features[0]):
                         self.data_queue.put(process.features[0])
                         print(process.features[0])
-                    # print(i)
                     # outlet_stream.push_sample([process.features[0]])
                     # br.append(process.features[0])
-                    # markers.append(marker)
+                    # markers.append(marker)+
 
                     sync.sendBuffer.value = 1
 

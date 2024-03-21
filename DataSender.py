@@ -41,13 +41,8 @@ class DataSender(multiprocessing.Process):
         info_channels = self.stream_info.desc().append_child("channels")
         info_channels.append_child("channel").append_child_value("label", "BR")
         self.stream_outlet = StreamOutlet(self.stream_info)
-        last_push_time = 0
 
         while True:
             if self.data_queue.qsize() > 0:
                 data = self.data_queue.get()
-                # Check if 5 seconds have elapsed since the last push
-                # if time.time() - last_push_time >= 5:
                 self.stream_outlet.push_sample([data])
-                print("Sending Data = " + str(data))
-                # last_push_time = time.time()  # Update the last push time
