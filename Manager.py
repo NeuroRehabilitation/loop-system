@@ -1,9 +1,5 @@
-import multiprocessing
-import time
-
-from Sync import *
+import csv
 from Process import *
-import warnings
 from DataSender import *
 
 warnings.filterwarnings("ignore")
@@ -21,17 +17,16 @@ class Manager(multiprocessing.Process):
         participant = "P0"
         path = folder + participant
 
-        # try:
-        #     f = open(path + "\\output.csv", "w", newline="")
-        #     writer = csv.writer(f)
-        #     header = ["Marker", "Breathing Rate"]
-        #     writer.writerow(header)
-        # except Exception as e:
-        #     print(e)
-        # header = ["Variable", "True Value", "Prediction"]
+        try:
+            f = open(path + "\\output.csv", "w", newline="")
+            writer = csv.writer(f)
+            header = ["Variable", "Value"]
+            writer.writerow(header)
+        except Exception as e:
+            print(e)
 
         # Instantiate object from class Sync and Processing
-        sync = Sync(buffer_window=30)
+        sync = Sync(buffer_window=40)
         process = Processing()
 
         # Start process Sync and put flag startAcquisition as True
@@ -75,19 +70,18 @@ class Manager(multiprocessing.Process):
                     if not np.isnan(process.features[0]):
                         self.data_queue.put(process.features[0])
                         print(process.features[0])
-                    # outlet_stream.push_sample([process.features[0]])
-                    # br.append(process.features[0])
-                    # markers.append(marker)+
+                        br.append(process.features[0])
+                        markers.append(video)
 
                     sync.sendBuffer.value = 1
 
         except Exception as e:
             print(e)
         finally:
-            # for i in range(len(br)):
-            #     writer.writerow([markers[i], br[i]])
-            # f.close()
-            # print("File Closed")
+            for i in range(len(br)):
+                writer.writerow([markers[i], br[i]])
+            f.close()
+            print("File Closed")
             sync.terminate()
             sync.join()
             data_sender.terminate()

@@ -9,6 +9,7 @@ __pycache__/
 
 #Folders
 /Training Models/
+/Breathing Rate/
 *.csv
 *.xlsx
 
