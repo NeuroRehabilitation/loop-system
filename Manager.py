@@ -36,6 +36,7 @@ class Manager(multiprocessing.Process):
         i = 0
 
         br, markers = [], []
+        video = ""
 
         # Get streams information
         process.info = sync.info_queue.get()
