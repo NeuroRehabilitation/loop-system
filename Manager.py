@@ -34,6 +34,7 @@ class Manager(multiprocessing.Process):
         sync.startAcquisition.value = 1
         sync.sendBuffer.value = 1
         i = 0
+        previous_value = 0
 
         br, markers = [], []
         video = ""
@@ -68,9 +69,13 @@ class Manager(multiprocessing.Process):
                     i += 1
                     process.features = process.processData()
 
-                    if not np.isnan(process.features[0]):
+                    if (
+                        not np.isnan(process.features[0])
+                        and process.features[0] != previous_value
+                    ):
                         self.data_queue.put(process.features[0])
                         print(process.features[0])
+                        previous_value = process.features[0]
                         br.append(process.features[0])
                         markers.append(video)
 
