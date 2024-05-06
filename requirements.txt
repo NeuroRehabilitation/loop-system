@@ -15,7 +15,7 @@ biosignalsnotebooks~=0.6.14
 biosppy==2.2.1
 black==24.4.2
 bleach==6.1.0
-blinker==1.8.1
+blinker==1.8.2
 bokeh==3.4.1
 brotlipy==0.7.0
 certifi @ file:///C:/b/abs_ac29jvt43w/croot/certifi_1665076682579/work/certifi
