@@ -163,7 +163,7 @@ wget==3.2
 widgetsnbextension @ file:///C:/b/abs_cbpn83gojt/croot/widgetsnbextension_1668501761270/work
 win-inet-pton @ file:///C:/ci_310/win_inet_pton_1642658466512/work
 wincertstore==0.2.1
-zope.interface==6.4
+zope.interface==6.4.post0
 numpy~=1.26.4
 scikit-learn~=1.5.0
 future~=1.0.0
