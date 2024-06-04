@@ -90,7 +90,7 @@ Pillow==10.3.0
 pkginfo @ file:///tmp/build/80754af9/pkginfo_1643162084911/work
 platformdirs==4.2.2
 prometheus-client==0.20.0
-prompt-toolkit==3.0.45
+prompt-toolkit==3.0.46
 psutil==5.9.8
 pure-eval @ file:///opt/conda/conda-bld/pure_eval_1646925070566/work
 py @ file:///opt/conda/conda-bld/py_1644396412707/work
