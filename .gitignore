@@ -8,11 +8,14 @@ __pycache__/
 *.cfg
 
 #Folders
+/Breathing Rate/
+/Logs/
 /Training Models/
 /Breathing Rate/
 /Logs/
 *.csv
 *.xlsx
+*.ipynb
 
 # Distribution / packaging
 .Python
