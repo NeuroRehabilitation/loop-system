@@ -24,7 +24,7 @@ charset-normalizer @ file:///tmp/build/80754af9/charset-normalizer_1630003229654
 click==8.1.7
 cmarkgfm @ file:///C:/ci_310/cmarkgfm_1642108802684/work
 colorama==0.4.6
-configobj==5.0.8
+configobj==5.0.9
 cryptography @ file:///C:/ci/cryptography_1652101729823/work
 cycler==0.12.1
 DateTime==5.5
@@ -33,8 +33,9 @@ decorator @ file:///opt/conda/conda-bld/decorator_1643638310831/work
 defusedxml @ file:///tmp/build/80754af9/defusedxml_1615228127516/work
 docutils @ file:///C:/Windows/Temp/abs_b6cq4adtko/croots/recipe/docutils_1659506292265/work
 entrypoints @ file:///C:/ci/entrypoints_1649926676279/work
-executing==2.0.1
+executing==2.1.0
 fastjsonschema @ file:///C:/Users/BUILDE~1/AppData/Local/Temp/abs_ebruxzvd08/croots/recipe/python-fastjsonschema_1661376484940/work
+
 fonttools==4.53.1
 future @ file:///C:/ci_310/future_1642081234309/work
 h5py==3.11.0
@@ -48,7 +49,7 @@ jedi==0.19.1
 Jinja2==3.1.4
 joblib==1.4.2
 jsonschema @ file:///C:/b/abs_59eyhnbyej/croots/recipe/jsonschema_1663375476535/work
-jupyter==1.0.0
+jupyter==1.1.1
 jupyter-console==6.6.3
 jupyter-server @ file:///C:/Windows/TEMP/abs_d3c42c59-765d-4f9b-9fa3-ad5b1369485611i_yual/croots/recipe/jupyter_server_1658754493238/work
 jupyter_client @ file:///C:/b/abs_8fbm7986b_/croots/recipe/jupyter_client_1662504374117/work
@@ -88,6 +89,7 @@ pathspec==0.12.1
 pickleshare @ file:///tmp/build/80754af9/pickleshare_1606932040724/work
 Pillow==10.4.0
 pkginfo @ file:///tmp/build/80754af9/pkginfo_1643162084911/work
+
 platformdirs==4.2.2
 prometheus-client==0.20.0
 prompt-toolkit==3.0.47
@@ -149,7 +151,7 @@ threadpoolctl==3.5.0
 tinycss2 @ file:///C:/b/abs_52w5vfuaax/croot/tinycss2_1668168823131/work
 tk==0.1.0
 toml==0.10.2
-tomli==2.0.1
+tomli==2.0.2
 tornado @ file:///C:/ci/tornado_1662476985533/work
 tqdm @ file:///C:/ci/tqdm_1650618044857/work
 traitlets==5.14.3
