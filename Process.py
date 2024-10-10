@@ -1,5 +1,8 @@
+import time
+
 from Signals_Processing import *
 import pickle
+import pylsl
 
 
 class Processing:
@@ -18,14 +21,15 @@ class Processing:
                 name = stream["Name"]
                 fs = stream["Sampling Rate"]
                 for key in self.data[name].keys():
-                    if key.startswith("ECG"):
-                        HRV_Dataframe = Process_HRV(self.data[name][key], fs, 16)
-                    if key.startswith("EDA"):
-                        EDA_Dataframe = Process_EDA(self.data[name][key], fs, 16)
+                    # if key.startswith("ECG"):
+                    #     HRV_Dataframe = Process_HRV(self.data[name][key], fs, 16)
+                    # if key.startswith("EDA"):
+                    #     EDA_Dataframe = Process_EDA(self.data[name][key], fs, 16)
                     if key.startswith("RESP"):
                         RESP_Dataframe = Process_RESP(self.data[name][key], fs, 16)
 
-                dataframe = (HRV_Dataframe.join(EDA_Dataframe)).join(RESP_Dataframe)
+                # dataframe = (HRV_Dataframe.join(EDA_Dataframe)).join(RESP_Dataframe)
+                dataframe = RESP_Dataframe["AVG"]
 
         return dataframe
 
@@ -68,10 +72,11 @@ class Processing:
         self.features = pd.DataFrame()
         if "OpenSignals" in self.data.keys():
             dataframe = self.getOpenSignals()
-        if "openvibeSignal" in self.data.keys():
-            EEG_dataframe = self.getOpenvibe()
+        # if "openvibeSignal" in self.data.keys():
+        #     EEG_dataframe = self.getOpenvibe()
 
-        self.features = pd.concat([EEG_dataframe, dataframe], axis=1)
+        # self.features = pd.concat([EEG_dataframe, dataframe], axis=1)
+        self.features = dataframe
 
         return self.features
 

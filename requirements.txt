@@ -13,10 +13,10 @@ beautifulsoup4 @ file:///C:/ci/beautifulsoup4_1650293028159/work
 bidict==0.23.1
 biosignalsnotebooks~=0.6.14
 biosppy==2.2.2
-black==24.10.0
+black==24.8.0
 bleach==6.1.0
 blinker==1.8.2
-bokeh==3.6.0
+bokeh==3.5.2
 brotlipy==0.7.0
 certifi @ file:///C:/b/abs_ac29jvt43w/croot/certifi_1665076682579/work/certifi
 cffi @ file:///C:/Windows/Temp/abs_6808y9x40v/croots/recipe/cffi_1659598653989/work
@@ -28,16 +28,17 @@ configobj==5.0.9
 cryptography @ file:///C:/ci/cryptography_1652101729823/work
 cycler==0.12.1
 DateTime==5.5
-debugpy==1.8.6
+debugpy==1.8.5
 decorator @ file:///opt/conda/conda-bld/decorator_1643638310831/work
 defusedxml @ file:///tmp/build/80754af9/defusedxml_1615228127516/work
 docutils @ file:///C:/Windows/Temp/abs_b6cq4adtko/croots/recipe/docutils_1659506292265/work
 entrypoints @ file:///C:/ci/entrypoints_1649926676279/work
 executing==2.1.0
 fastjsonschema @ file:///C:/Users/BUILDE~1/AppData/Local/Temp/abs_ebruxzvd08/croots/recipe/python-fastjsonschema_1661376484940/work
-fonttools==4.54.1
+
+fonttools==4.53.1
 future @ file:///C:/ci_310/future_1642081234309/work
-h5py==3.12.1
+h5py==3.11.0
 idna @ file:///tmp/build/80754af9/idna_1637925883363/work
 imagesize @ file:///C:/Windows/TEMP/abs_3cecd249-3fc4-4bfc-b80b-bb227b0d701en12vqzot/croots/recipe/imagesize_1657179501304/work
 ipykernel @ file:///C:/b/abs_21ykzkm7y_/croots/recipe/ipykernel_1662361803478/work
@@ -55,7 +56,7 @@ jupyter_client @ file:///C:/b/abs_8fbm7986b_/croots/recipe/jupyter_client_166250
 jupyter_core==5.7.2
 jupyterlab-pygments==0.3.0
 jupyterlab-widgets==3.0.13
-kiwisolver==1.4.7
+kiwisolver==1.4.5
 libmagic==1.0
 llvmlite==0.43.0
 lxml @ file:///C:/ci/lxml_1657527492694/work
@@ -80,7 +81,7 @@ numpy @ file:///C:/b/abs_53f_dbvhzc/croot/numpy_and_numpy_base_1665773185489/wor
 oauthlib==3.2.2
 opencv-python==4.10.0.84
 packaging==24.1
-pandas~=2.2.3
+pandas~=2.2.2
 pandocfilters @ file:///opt/conda/conda-bld/pandocfilters_1643405455980/work
 parso==0.8.4
 pathlib @ file:///Users/ktietz/demo/mc3/conda-bld/pathlib_1629713961906/work
@@ -88,14 +89,15 @@ pathspec==0.12.1
 pickleshare @ file:///tmp/build/80754af9/pickleshare_1606932040724/work
 Pillow==10.4.0
 pkginfo @ file:///tmp/build/80754af9/pkginfo_1643162084911/work
-platformdirs==4.3.6
-prometheus-client==0.21.0
-prompt-toolkit==3.0.48
+
+platformdirs==4.2.2
+prometheus-client==0.20.0
+prompt-toolkit==3.0.47
 psutil==6.0.0
 pure-eval @ file:///opt/conda/conda-bld/pure_eval_1646925070566/work
 py @ file:///opt/conda/conda-bld/py_1644396412707/work
 pyasn1 @ file:///Users/ktietz/demo/mc3/conda-bld/pyasn1_1629708007385/work
-pyasn1-modules==0.4.1
+pyasn1-modules==0.4.0
 pycodestyle @ file:///tmp/build/80754af9/pycodestyle_1636635402688/work
 pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
 Pygments==2.18.0
@@ -104,7 +106,7 @@ pylsl~=1.16.2
 pyOpenSSL @ file:///opt/conda/conda-bld/pyopenssl_1643788558760/work
 pyparsing==3.1.4
 PyQt5==5.15.11
-PyQt5-Qt5==5.15.15
+PyQt5-Qt5==5.15.14
 PyQt5-sip==12.15.0
 pyqtgraph @ file:///C:/Windows/TEMP/abs_e3uugnjl26/croots/recipe/pyqtgraph_1659341135432/work
 pyrsistent==0.20.0
@@ -114,15 +116,15 @@ pyte @ file:///Users/ktietz/demo/mc3/conda-bld/pyte_1629482083809/work
 python-dateutil @ file:///tmp/build/80754af9/python-dateutil_1626374649649/work
 python-magic-bin==0.4.14
 pytz @ file:///C:/Windows/TEMP/abs_90eacd4e-8eff-491e-b26e-f707eba2cbe1ujvbhqz1/croots/recipe/pytz_1654762631027/work
-pywin32==307
+pywin32==306
 pywinpty==2.0.13
 pyxdf~=1.16.8
 PyYAML==6.0.2
 pyzmq @ file:///C:/ci/pyzmq_1657616000714/work
-qtconsole==5.6.0
+qtconsole==5.5.2
 QtPy==2.4.1
 readme-renderer @ file:///C:/ci_310/readme_renderer_1642120771396/work
-regex==2024.9.11
+regex==2024.7.24
 requests @ file:///C:/ci/requests_1657735340829/work
 requests-oauthlib==2.0.0
 requests-toolbelt @ file:///Users/ktietz/demo/mc3/conda-bld/requests-toolbelt_1629456163440/work
@@ -163,7 +165,7 @@ wget==3.2
 widgetsnbextension @ file:///C:/b/abs_cbpn83gojt/croot/widgetsnbextension_1668501761270/work
 win-inet-pton @ file:///C:/ci_310/win_inet_pton_1642658466512/work
 wincertstore==0.2.1
-zope.interface==7.0.3
-numpy~=2.1.2
-scikit-learn~=1.5.2
+zope.interface==7.0.2
+numpy~=2.1.0
+scikit-learn~=1.5.1
 future~=1.0.0
