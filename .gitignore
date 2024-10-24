@@ -15,7 +15,7 @@ __pycache__/
 /Logs/
 *.csv
 *.xlsx
-*.ipynb
+
 
 # Distribution / packaging
 .Python
