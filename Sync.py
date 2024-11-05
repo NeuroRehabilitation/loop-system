@@ -1,7 +1,6 @@
-from ReceiveStreams import *
-import time
 from collections import deque
-import numpy as np
+
+from ReceiveStreams import *
 
 
 class Sync(multiprocessing.Process):

@@ -1,8 +1,6 @@
-import time
+import pickle
 
 from Signals_Processing import *
-import pickle
-import pylsl
 
 
 class Processing:
@@ -16,20 +14,23 @@ class Processing:
         :return:
         :rtype:
         """
+
+        dataframe, HRV_Dataframe, EDA_Dataframe, RESP_Dataframe = None, None, None, None
+
         for stream in self.info:
             if stream["Name"] == "OpenSignals":
                 name = stream["Name"]
                 fs = stream["Sampling Rate"]
                 for key in self.data[name].keys():
-                    # if key.startswith("ECG"):
-                    #     HRV_Dataframe = Process_HRV(self.data[name][key], fs, 16)
-                    # if key.startswith("EDA"):
-                    #     EDA_Dataframe = Process_EDA(self.data[name][key], fs, 16)
+                    if key.startswith("ECG"):
+                        HRV_Dataframe = Process_HRV(self.data[name][key], fs, 16)
+                    if key.startswith("EDA"):
+                        EDA_Dataframe = Process_EDA(self.data[name][key], fs, 16)
                     if key.startswith("RESP"):
                         RESP_Dataframe = Process_RESP(self.data[name][key], fs, 16)
 
-                # dataframe = (HRV_Dataframe.join(EDA_Dataframe)).join(RESP_Dataframe)
-                dataframe = RESP_Dataframe["AVG"]
+                dataframe = (HRV_Dataframe.join(EDA_Dataframe)).join(RESP_Dataframe)
+                # dataframe = RESP_Dataframe["AVG"]
 
         return dataframe
 

@@ -1,9 +1,16 @@
 import warnings
-from Signals_Processing import *
-from sklearn.preprocessing import StandardScaler
+
+import joblib
+from sklearn import ensemble, feature_selection, svm, naive_bayes, neighbors
+from sklearn.ensemble import VotingClassifier
 from sklearn.impute import SimpleImputer
-from sklearn import ensemble, feature_selection
-import pickle
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import GridSearchCV
+from sklearn.neural_network import MLPClassifier
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+from Signals_Processing import *
 
 warnings.filterwarnings("ignore")
 
@@ -16,16 +23,11 @@ path = folder + participant
 os.chdir(path)
 (
     users,
-    EEG_epochs,
-    EEG_filtered,
     Signals_epochs,
     Signals,
-    EEG_dict,
     features_signals,
-    features_EEG,
     features_epochs,
-    features_epochs_EEG,
-) = ({}, {}, {}, {}, {}, {}, {}, {}, {}, {})
+) = ({}, {}, {}, {}, {})
 
 for root, dirs, files in os.walk(path):
     for fname in files:
@@ -33,7 +35,6 @@ for root, dirs, files in os.walk(path):
             users[fname] = Run_files(fname)
 
 Opensignals_fs = 100
-EEG_fs = 250
 resolution = 16
 sensors = ["ECG", "EDA", "RESP"]
 
@@ -44,28 +45,15 @@ sensors = ["ECG", "EDA", "RESP"]
     offset,
     onset_index,
     offset_index,
-    onset_index_EEG,
-    offset_index_EEG,
     data,
     valence,
     arousal,
 ) = getEvents(
     users,
     "OpenSignals",
-    "openvibeSignal",
     "PsychoPy Markers",
-    "PsychoPy Ratings",
-    sensors,
+    sensors
 )
-
-"""EEG Processing"""
-
-EEG_filtered = filterEEG(data, EEG_fs)
-EEG_filtered = getEEGChannels(EEG_filtered)
-EEG_epochs = getEpochs(EEG_filtered, onset_index_EEG, events_diff, EEG_fs)
-EEG_dict = getVideosDict(EEG_epochs, videos)
-features_EEG = getEEGBands(EEG_dict, EEG_fs)
-features_epochs_EEG, features_baseline_EEG = getEEGDict(features_EEG)
 
 """Biosignalsplux Processing"""
 
@@ -75,134 +63,109 @@ features_signals = getFeatures(Signals, Opensignals_fs, resolution)
 features_epochs, df_baseline = getFeaturesEpochs(features_signals)
 df_baseline[participant].to_csv(path + "\\baseline.csv", sep=";")
 
-"""Dataframes"""
-dataframe_EEG, EEG_baseline = getEEGDataframe(
-    features_epochs_EEG, features_baseline_EEG
-)
+"""Dataframe"""
 dataframe = getSignalsDataframe(features_epochs)
-EEG_baseline.to_csv(path + "\\EEGbaseline.csv", sep=";")
-
-"""Concatenate Dataframes"""
-columns = dataframe.columns[: (len(dataframe.columns) - 2)]
-columns_EEG = dataframe_EEG.columns[: (len(dataframe_EEG.columns) - 2)]
-full_dataframe = pd.concat([dataframe_EEG[columns_EEG], dataframe], axis=1)
-full_dataframe["Valence Level"] = valence[participant]
-full_dataframe["Arousal Level"] = arousal[participant]
-full_columns = full_dataframe.columns[: (len(full_dataframe.columns) - 4)]
+dataframe["Valence Level"] = valence[participant]
+dataframe["Arousal Level"] = arousal[participant]
+columns = dataframe.columns[: (len(dataframe.columns) - 4)]
 
 """Scaler"""
-scaler, scaler_arousal, scaler_valence = (
-    StandardScaler(),
-    StandardScaler(),
-    StandardScaler(),
-)
+scaler = StandardScaler(),
 
 """Input Data for Models"""
-X = np.array(full_dataframe[full_columns])
-X_arousal = np.array(full_dataframe[full_columns])
-X_valence = np.array(full_dataframe[full_columns])
+X = np.array(dataframe[columns])
+Y = np.array(dataframe[["Category"]])
 
-Y = np.array(full_dataframe[["Category"]])
-Y_arousal = np.array(full_dataframe[["Arousal Level"]])
-Y_valence = np.array(full_dataframe[["Valence Level"]])
+"""Models Parameters for GridSearch"""
 
-"""Train Model"""
-imp = SimpleImputer(missing_values=np.nan, strategy="mean")
-imp.fit(X)
-X = imp.transform(X)
-model = ensemble.RandomForestClassifier()
-scaler = scaler.fit(X, Y.ravel())
-X = scaler.transform(X)
-rfe = feature_selection.RFE(model, step=1)
-rfe = rfe.fit(X, Y.ravel())
-X = rfe.transform(X)
-model.fit(X, Y.ravel())
+param_grids = {
+    "KNN": {
+        'model': [neighbors.KNeighborsClassifier()],
+        'model__n_neighbors': list(range(1, 5)),
+        'model__weights': ['uniform', 'distance'],
+        'model__algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute']
+    },
+    "SVM": {
+        'model': [svm.SVC(probability=True)],
+        'model__C': [0.1, 1, 10],
+        'model__kernel': ['linear', 'rbf'],
+        'model__gamma': ["scale", "auto"],
+        'model__random_state': list(range(0, 50, 2))
+    },
+    "Bayes": {
+        'model': [naive_bayes.GaussianNB()]
+    },  # No parameters for GaussianNB
+
+    "Logistic Regression": {
+        'model': [LogisticRegression()],
+        'model__C': [0.1, 1, 10],
+        'model__solver': ['lbfgs', 'newton-cg', 'sag', 'saga'],
+        'model__multi_class': ["multinomial"],
+        'model__random_state': list(range(0, 50, 5))
+    },
+    "Random Forest": {
+        'model': [ensemble.RandomForestClassifier()],
+        'model__n_estimators': [50, 100, 150],
+        'model__criterion': ["gini", "entropy", "log_loss"],
+        'model__random_state': list(range(0, 50, 5))
+    },
+    "NN": {
+        'model': [MLPClassifier()],
+        'model__activation': ['identity', 'logistic', 'tanh', 'relu'],
+        'model__solver': ['lbfgs', 'sgd', 'adam'],
+        'model__random_state': list(range(0, 50, 5))
+    }
+}
+
+"""Train Model using GridSearchCV"""
+
+best_models = {}
+
+# Loop through each model and parameter grid
+for model_name, param_grid in param_grids.items():
+    # Create the pipeline
+    pipeline = Pipeline([
+        ('imputer', SimpleImputer(missing_values=np.nan, strategy="mean")),
+        ('scaler', StandardScaler()),
+        ('feature_selection', feature_selection.RFE(ensemble.RandomForestClassifier(random_state=42), step=1)),
+        ('model', param_grid['model'][0])  # Placeholder model to set pipeline structure
+    ])
+
+    # Grid search for hyperparameter tuning
+    if param_grid:
+        grid_search = GridSearchCV(
+            pipeline, param_grid, cv=5, n_jobs=-1, scoring='accuracy')
+        grid_search.fit(X, Y.ravel())
+
+        # Store the best model and score
+        best_models[model_name] = {
+            'best_estimator': grid_search.best_estimator_,
+            'best_score': grid_search.best_score_
+        }
+        print(f"Best cross-validation accuracy for {model_name}: {grid_search.best_score_:.4f}")
+    else:
+        # Fit the pipeline without grid search if no parameters
+        pipeline.fit(X, Y.ravel())
+        best_models[model_name] = {
+            'best_estimator': pipeline,
+            'best_score': pipeline.score(X, Y.ravel())  # Evaluate the score directly
+        }
+        print(f"No hyperparameters to tune for {model_name}. Model fitted directly.")
+
+# Sort the models by their best score in descending order
+sorted_models = sorted(best_models.items(), key=lambda item: item[1]['best_score'], reverse=True)
+
+# Select the top two models
+best_two_models = sorted_models[:2]
+
+estimators = [(model_name, info['best_estimator']) for model_name, info in best_two_models]
+
+# Create a VotingClassifier with the best two models
+voting_clf = VotingClassifier(estimators=estimators, voting='soft')  # You can also use 'hard' voting
+voting_clf.fit(X, Y.ravel())
 
 try:
-    with open(path + "//" + "imp.pkl", "wb") as f:
-        pickle.dump(imp, f)
+    joblib.dump(voting_clf, f"{path}/model.pkl")
+    print(f'VotingClassifier saved successfully to {path}')
 except Exception as e:
-    print(e)
-try:
-    with open(path + "//" + "scaler.pkl", "wb") as f:
-        pickle.dump(scaler, f)
-except Exception as e:
-    print(e)
-try:
-    with open(path + "//" + "rfe.pkl", "wb") as f:
-        pickle.dump(rfe, f)
-except Exception as e:
-    print(e)
-try:
-    with open(path + "//" + "model.pkl", "wb") as f:
-        pickle.dump(model, f)
-except Exception as e:
-    print(e)
-
-"""Arousal Model"""
-
-imp_arousal = SimpleImputer(missing_values=np.nan, strategy="mean")
-imp_arousal.fit(X_arousal)
-X_arousal = imp.transform(X_arousal)
-model_arousal = ensemble.RandomForestClassifier(random_state=0)
-scaler_arousal = scaler_arousal.fit(X_arousal, Y_arousal.ravel())
-X_arousal = scaler_arousal.transform(X_arousal)
-rfe_arousal = feature_selection.RFE(model_arousal, step=1)
-rfe_arousal = rfe_arousal.fit(X_arousal, Y_arousal.ravel())
-X_arousal = rfe_arousal.transform(X_arousal)
-model_arousal.fit(X_arousal, Y_arousal.ravel())
-
-try:
-    with open(path + "//" + "imp_arousal.pkl", "wb") as f:
-        pickle.dump(imp_arousal, f)
-except Exception as e:
-    print(e)
-try:
-    with open(path + "//" + "scaler_arousal.pkl", "wb") as f:
-        pickle.dump(scaler_arousal, f)
-except Exception as e:
-    print(e)
-try:
-    with open(path + "//" + "rfe_arousal.pkl", "wb") as f:
-        pickle.dump(rfe_arousal, f)
-except Exception as e:
-    print(e)
-try:
-    with open(path + "//" + "model_arousal.pkl", "wb") as f:
-        pickle.dump(model_arousal, f)
-except Exception as e:
-    print(e)
-
-"""valence Model"""
-
-imp_valence = SimpleImputer(missing_values=np.nan, strategy="mean")
-imp_valence.fit(X_valence)
-X_valence = imp.transform(X_valence)
-model_valence = ensemble.RandomForestClassifier(random_state=0)
-scaler_valence = scaler_valence.fit(X_valence, Y_valence.ravel())
-X_valence = scaler_valence.transform(X_valence)
-rfe_valence = feature_selection.RFE(model_valence, step=1)
-rfe_valence = rfe_valence.fit(X_valence, Y_valence.ravel())
-X_valence = rfe_valence.transform(X_valence)
-model_valence.fit(X_valence, Y_valence.ravel())
-
-try:
-    with open(path + "//" + "imp_valence.pkl", "wb") as f:
-        pickle.dump(imp_valence, f)
-except Exception as e:
-    print(e)
-try:
-    with open(path + "//" + "scaler_valence.pkl", "wb") as f:
-        pickle.dump(scaler_valence, f)
-except Exception as e:
-    print(e)
-try:
-    with open(path + "//" + "rfe_valence.pkl", "wb") as f:
-        pickle.dump(rfe_valence, f)
-except Exception as e:
-    print(e)
-try:
-    with open(path + "//" + "model_valence.pkl", "wb") as f:
-        pickle.dump(model_valence, f)
-except Exception as e:
-    print(e)
+    print(f'Error saving the model: {e}')
