@@ -49,8 +49,9 @@ baseline_signals = nk.epochs_create(
     epochs_end=epochs_markers["Baseline"]["EventsDiff"],
 )
 df_baseline = getDataframe(baseline_signals["1"], fs, resolution)
+
 try:
-    df_baseline.to_csv(path + "\\baseline.csv", sep=";")
+    df_baseline.to_csv(path + "\\df_baseline.csv", sep=";")
     print(f"Baseline Dataframe saved to {path}.")
 except Exception as e:
     print(f"An error occurred saving the Baseline Dataframe: {e}")
@@ -64,17 +65,24 @@ features = getFeatures(epochs_data, fs=fs, resolution=resolution)
 
 """Features Dataframe"""
 dataframe = getSignalsDataframe(features, epochs_data)
+dataframe.replace([np.inf, -np.inf], np.nan, inplace=True)
 
-# features_signals = getFeatures(Signals, Opensignals_fs, resolution)
-# features_epochs, df_baseline = getFeaturesEpochs(features_signals)
-# df_baseline[participant].to_csv(path + "\\baseline.csv", sep=";")
-#
-# """Dataframe"""
-# dataframe = getSignalsDataframe(features_epochs)
-# dataframe["Valence Level"] = valence[participant]
-# dataframe["Arousal Level"] = arousal[participant]
-# columns = dataframe.columns[: (len(dataframe.columns) - 4)]
-#
+try:
+    dataframe.to_csv(path + "\\dataframe.csv", sep=";")
+    print(f"Features Dataframe saved to {path}.")
+except Exception as e:
+    print(f"An error occurred saving the Features Dataframe: {e}")
+
+"""Subtract baseline features to dataframe"""
+columns = dataframe.columns[:len(dataframe.columns) - 3]
+full_dataframe = getFullDataframe(dataframe, df_baseline, columns)
+
+try:
+    full_dataframe.to_csv(path + "\\full_dataframe.csv", sep=";")
+    print(f"Full Dataframe saved to {path}.")
+except Exception as e:
+    print(f"An error occurred saving the Full Dataframe: {e}")
+
 # """Input Data for Models"""
 # X = np.array(dataframe[columns])
 # Y = np.array(dataframe[["Category"]])
