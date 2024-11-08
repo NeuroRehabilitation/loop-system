@@ -1,5 +1,8 @@
 import warnings
 
+import joblib
+from sklearn.ensemble import VotingClassifier
+
 from Signals_Processing import *
 
 warnings.filterwarnings("ignore")
@@ -19,7 +22,7 @@ try:
     if os.path.isdir(path):
         print(f"Loading data from {path}.")
 
-        xdf_files = [file for file in os.listdir(path) if file.endswith('.xdf')]
+        xdf_files = [file for file in os.listdir(path) if file.endswith(".xdf")]
 
         if not xdf_files:
             print("No .xdf files found.")
@@ -37,7 +40,9 @@ except Exception as e:
     print(f"An error occurred: {e}")
 
 """Signals Processing"""
-signals = getSignals(data, "OpenSignals", "PsychoPy Markers", "PsychoPy Ratings", sensors=sensors)
+signals = getSignals(
+    data, "OpenSignals", "PsychoPy Markers", "PsychoPy Ratings", sensors=sensors
+)
 epochs_markers, ratings = getEvents(signals)
 
 """Baseline Dataframe"""
@@ -74,7 +79,7 @@ except Exception as e:
     print(f"An error occurred saving the Features Dataframe: {e}")
 
 """Subtract baseline features to dataframe"""
-columns = dataframe.columns[:len(dataframe.columns) - 3]
+columns = dataframe.columns[: len(dataframe.columns) - 3]
 full_dataframe = getFullDataframe(dataframe, df_baseline, columns)
 
 try:
@@ -93,21 +98,27 @@ Y = np.array(full_dataframe[["Arousal"]])
 """GridSearchCV"""
 best_models = gridSearchCV(X, Y)
 
-#
-# # Sort the models by their best score in descending order
-# sorted_models = sorted(best_models.items(), key=lambda item: item[1]['best_score'], reverse=True)
-#
-# # Select the top two models
-# best_two_models = sorted_models[:2]
-#
-# estimators = [(model_name, info['best_estimator']) for model_name, info in best_two_models]
-#
-# # Create a VotingClassifier with the best two models
-# voting_clf = VotingClassifier(estimators=estimators, voting='soft')  # You can also use 'hard' voting
-# voting_clf.fit(X, Y.ravel())
-#
-# try:
-#     joblib.dump(voting_clf, f"{path}/model.pkl")
-#     print(f'VotingClassifier saved successfully to {path}')
-# except Exception as e:
-#     print(f'Error saving the model: {e}')
+
+# Sort the models by their best score in descending order
+sorted_models = sorted(
+    best_models.items(), key=lambda item: item[1]["best_score"], reverse=True
+)
+
+# Select the top two models
+best_two_models = sorted_models[:2]
+
+estimators = [
+    (model_name, info["best_estimator"]) for model_name, info in best_two_models
+]
+
+# Create a VotingClassifier with the best two models
+voting_clf = VotingClassifier(
+    estimators=estimators, voting="soft"
+)  # You can also use 'hard' voting
+voting_clf.fit(X, Y.ravel())
+
+try:
+    joblib.dump(voting_clf, f"{path}/model.pkl")
+    print(f"VotingClassifier saved successfully to {path}")
+except Exception as e:
+    print(f"Error saving the model: {e}")

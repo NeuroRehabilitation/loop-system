@@ -1,3 +1,5 @@
+import time
+
 import pyxdf
 from colorama import Fore
 from sklearn import neighbors, svm, naive_bayes, ensemble, feature_selection
@@ -238,6 +240,8 @@ def getFullDataframe(dataframe: pd.DataFrame, df_baseline: pd.DataFrame, columns
 
 @staticmethod
 def gridSearchCV(X: np.array, Y: np.array) -> dict:
+    start_time = time.time()
+
     """Models Parameters for GridSearch"""
 
     param_grids = {
@@ -297,7 +301,7 @@ def gridSearchCV(X: np.array, Y: np.array) -> dict:
         if param_grid:
             with tqdm(total=len(param_grid), desc=f"Hyperparameter tuning for {model_name}", leave=False) as inner_bar:
                 grid_search = GridSearchCV(
-                    pipeline, param_grid, cv=5, n_jobs=4, scoring='accuracy')
+                    pipeline, param_grid, cv=5, n_jobs=4, verbose=2, scoring='accuracy')
                 grid_search.fit(X, Y.ravel())
 
                 inner_bar.update(len(param_grid))
@@ -316,6 +320,8 @@ def gridSearchCV(X: np.array, Y: np.array) -> dict:
                 'best_score': pipeline.score(X, Y.ravel())  # Evaluate the score directly
             }
             print(f"No hyperparameters to tune for {model_name}. Model fitted directly.")
+
+    print(f'Time to perform GridSearchCV = {time.time() - start_time} seconds')
 
     return best_models
 
