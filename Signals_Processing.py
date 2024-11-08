@@ -1,3 +1,5 @@
+import os
+import sys
 import time
 
 import pyxdf
@@ -11,6 +13,10 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 
+# Add other content roots to sys.path
+sys.path.append(
+    os.path.abspath("C://Users//Rodrigo//Desktop//PhD//Study1//Physiological_Data//")
+)
 from Epochs import *
 from Load import *
 from Process_Features import *
@@ -33,18 +39,22 @@ def change_key(dictionary, key_to_remove, new_key):
 
 @staticmethod
 def Load_Data(
-        data,
-        openSignals_stream_name: str,
-        markers_stream_name: str,
-        ratings_stream_name: str,
-        sensors: list,
+    data,
+    openSignals_stream_name: str,
+    markers_stream_name: str,
+    ratings_stream_name: str,
+    sensors: list,
 ) -> dict:
     marker, timestamps = Load_PsychopyMarkers(data, markers_stream_name)
     opensignals_data, fs = Load_Opensignals(data, openSignals_stream_name)
     ratings = Load_Ratings(data, ratings_stream_name)
 
-    change_key(opensignals_data, "time_Opensignals", "Time"), change_key(opensignals_data, "CH1", sensors[0]),
-    change_key(opensignals_data, "CH2", sensors[1]), change_key(opensignals_data, "CH3", sensors[2])
+    change_key(opensignals_data, "time_Opensignals", "Time"), change_key(
+        opensignals_data, "CH1", sensors[0]
+    ),
+    change_key(opensignals_data, "CH2", sensors[1]), change_key(
+        opensignals_data, "CH3", sensors[2]
+    )
 
     Signals = pd.DataFrame(data=opensignals_data)
 
@@ -52,23 +62,30 @@ def Load_Data(
         "Signals": Signals,
         "Markers": marker,
         "Markers Timestamps": timestamps,
-        "Ratings": ratings
+        "Ratings": ratings,
     }
 
     return data
 
 
 @staticmethod
-def getSignals(data,
-               openSignals_stream_name: str,
-               markers_stream_name: str,
-               ratings_stream_name: str,
-               sensors: list, ) -> dict:
+def getSignals(
+    data,
+    openSignals_stream_name: str,
+    markers_stream_name: str,
+    ratings_stream_name: str,
+    sensors: list,
+) -> dict:
     signals = {}
 
     for condition in data:
-        signals[condition] = Load_Data(data[condition], openSignals_stream_name, markers_stream_name,
-                                       ratings_stream_name, sensors)
+        signals[condition] = Load_Data(
+            data[condition],
+            openSignals_stream_name,
+            markers_stream_name,
+            ratings_stream_name,
+            sensors,
+        )
 
     return signals
 
@@ -78,92 +95,131 @@ def getEvents(signals) -> (dict, dict):
     epochs_markers, ratings = {}, {}
 
     for condition in signals:
-        onset, offset, marker = getMarkers(signals[condition]["Markers"], signals[condition]["Markers Timestamps"])
-        onset_index, offset_index = getMarkersIndex(onset, offset, signals[condition]["Signals"]["Time"])
+        onset, offset, marker = getMarkers(
+            signals[condition]["Markers"], signals[condition]["Markers Timestamps"]
+        )
+        onset_index, offset_index = getMarkersIndex(
+            onset, offset, signals[condition]["Signals"]["Time"]
+        )
         events_diff = CalculateEventsDiff(onset, offset)
-        epochs_markers[condition] = {"Onset": onset, "Onset_index": onset_index,
-                                     "Offset": offset, "Offset_index": offset_index,
-                                     "EventsDiff": events_diff,
-                                     "Marker": marker}
+        epochs_markers[condition] = {
+            "Onset": onset,
+            "Onset_index": onset_index,
+            "Offset": offset,
+            "Offset_index": offset_index,
+            "EventsDiff": events_diff,
+            "Marker": marker,
+        }
 
-        arousal_index = getRatingsIndex(signals[condition]["Ratings"]["Arousal Timestamps"],
-                                        signals[condition]["Signals"]["Time"])
-        valence_index = getRatingsIndex(signals[condition]["Ratings"]["Valence Timestamps"],
-                                        signals[condition]["Signals"]["Time"])
-        ratings[condition] = {"Arousal": signals[condition]["Ratings"]["Arousal"],
-                              "Arousal Timestamps": signals[condition]["Ratings"]["Arousal Timestamps"],
-                              "Arousal_index": arousal_index,
-                              "Valence": signals[condition]["Ratings"]["Valence"],
-                              "Valence Timestamps": signals[condition]["Ratings"]["Valence Timestamps"],
-                              "Valence_index": valence_index}
+        arousal_index = getRatingsIndex(
+            signals[condition]["Ratings"]["Arousal Timestamps"],
+            signals[condition]["Signals"]["Time"],
+        )
+        valence_index = getRatingsIndex(
+            signals[condition]["Ratings"]["Valence Timestamps"],
+            signals[condition]["Signals"]["Time"],
+        )
+        ratings[condition] = {
+            "Arousal": signals[condition]["Ratings"]["Arousal"],
+            "Arousal Timestamps": signals[condition]["Ratings"]["Arousal Timestamps"],
+            "Arousal_index": arousal_index,
+            "Valence": signals[condition]["Ratings"]["Valence"],
+            "Valence Timestamps": signals[condition]["Ratings"]["Valence Timestamps"],
+            "Valence_index": valence_index,
+        }
 
     return epochs_markers, ratings
 
 
 @staticmethod
-def getSignalsEpochs(signals: dict, epochs_markers: dict, ratings: dict, window: int, fs: int) -> dict:
+def getSignalsEpochs(
+    signals: dict, epochs_markers: dict, ratings: dict, window: int, fs: int
+) -> dict:
     epochs_data = {}
 
     for condition in epochs_markers:
-        events = np.arange(epochs_markers[condition]["Onset_index"][0],
-                           epochs_markers[condition]["Offset_index"][-1] - window * fs, fs)
+        events = np.arange(
+            epochs_markers[condition]["Onset_index"][0],
+            epochs_markers[condition]["Offset_index"][-1] - window * fs,
+            fs,
+        )
 
         match (condition):
             case "Baseline":
                 arousal_values = ["Low" for _ in range(len(events))]
                 valence_values = ["Low" for _ in range(len(events))]
 
-                epochs_signals = nk.epochs_create(pd.DataFrame.from_dict(signals[condition]["Signals"]),
-                                                  events=events,
-                                                  sampling_rate=fs,
-                                                  epochs_start=0,
-                                                  epochs_end=window,
-                                                  )
-            case ("PreStroop" | "PostStroop"):
+                epochs_signals = nk.epochs_create(
+                    pd.DataFrame.from_dict(signals[condition]["Signals"]),
+                    events=events,
+                    sampling_rate=fs,
+                    epochs_start=0,
+                    epochs_end=window,
+                )
+            case "PreStroop" | "PostStroop":
                 stroop_markers = [0]
 
                 for timestamp_index in epochs_markers[condition]["Onset_index"]:
-                    stroop_markers.append(
-                        len(np.where(timestamp_index >= events)[0]))
+                    stroop_markers.append(len(np.where(timestamp_index >= events)[0]))
 
                 count = np.diff(stroop_markers)
-                markers = ["Medium" if "Congruente" in value else "High" if "Incongruente" in value else value for
-                           count, value in zip(
-                        count, epochs_markers[condition]["Marker"]) for _ in range(count)]
+                markers = [
+                    (
+                        "Medium"
+                        if "Congruente" in value
+                        else "High" if "Incongruente" in value else value
+                    )
+                    for count, value in zip(count, epochs_markers[condition]["Marker"])
+                    for _ in range(count)
+                ]
 
                 arousal_values = markers
                 valence_values = markers
 
-                epochs_signals = nk.epochs_create(pd.DataFrame.from_dict(signals[condition]["Signals"]),
-                                                  events=events,
-                                                  sampling_rate=fs,
-                                                  epochs_start=0,
-                                                  epochs_end=window,
-                                                  )
+                epochs_signals = nk.epochs_create(
+                    pd.DataFrame.from_dict(signals[condition]["Signals"]),
+                    events=events,
+                    sampling_rate=fs,
+                    epochs_start=0,
+                    epochs_end=window,
+                )
             case "VR":
-                markers = np.insert(ratings[condition]["Arousal_index"], 0,
-                                    epochs_markers[condition]["Onset_index"][0])
+                markers = np.insert(
+                    ratings[condition]["Arousal_index"],
+                    0,
+                    epochs_markers[condition]["Onset_index"][0],
+                )
 
-                valence_values = ratings[condition]['Valence']
-                arousal_values = ratings[condition]['Arousal']
+                valence_values = ratings[condition]["Valence"]
+                arousal_values = ratings[condition]["Arousal"]
 
-                valence_timestamps = np.insert(ratings[condition]["Valence Timestamps"],
-                                               len(ratings[condition]["Valence Timestamps"]),
-                                               epochs_markers[condition]["Offset"][-1])
-                arousal_timestamps = np.insert(ratings[condition]["Arousal Timestamps"], 0,
-                                               epochs_markers[condition]["Onset"][0])
+                valence_timestamps = np.insert(
+                    ratings[condition]["Valence Timestamps"],
+                    len(ratings[condition]["Valence Timestamps"]),
+                    epochs_markers[condition]["Offset"][-1],
+                )
+                arousal_timestamps = np.insert(
+                    ratings[condition]["Arousal Timestamps"],
+                    0,
+                    epochs_markers[condition]["Onset"][0],
+                )
 
                 events_diff = valence_timestamps - arousal_timestamps
                 events_diff = list(events_diff[:-1])
 
-                epochs_signals = nk.epochs_create(pd.DataFrame.from_dict(signals[condition]["Signals"]),
-                                                  events=markers[:-1],
-                                                  sampling_rate=fs,
-                                                  epochs_start=0,
-                                                  epochs_end=events_diff,
-                                                  )
+                epochs_signals = nk.epochs_create(
+                    pd.DataFrame.from_dict(signals[condition]["Signals"]),
+                    events=markers[:-1],
+                    sampling_rate=fs,
+                    epochs_start=0,
+                    epochs_end=events_diff,
+                )
 
-        epochs_data[condition] = {"Signals": epochs_signals, "Arousal": arousal_values, "Valence": valence_values}
+        epochs_data[condition] = {
+            "Signals": epochs_signals,
+            "Arousal": arousal_values,
+            "Valence": valence_values,
+        }
 
     return epochs_data
 
@@ -184,12 +240,35 @@ def getFeatures(epochs_data: dict, fs: int, resolution: int) -> dict:
 
     for condition in tqdm(epochs_data):
         features[condition] = {}
-        for epoch in tqdm(epochs_data[condition]["Signals"],
-                          desc=Fore.BLUE + f"Extracting features for {condition}" + Fore.BLUE,
-                          colour="cyan",
-                          bar_format=BLUE + "{l_bar}" + BLUE + "{bar}" + BLUE + "| " + BLUE + "{n_fmt}" + BLUE + "/" + BLUE + "{total_fmt} [" + BLUE + "{elapsed}" + "<" + BLUE + "{remaining}" + ", " + "{rate_fmt}""]",
-                          leave=False):
-            features[condition][epoch] = getDataframe(epochs_data[condition]["Signals"][epoch], fs, resolution)
+        for epoch in tqdm(
+            epochs_data[condition]["Signals"],
+            desc=Fore.BLUE + f"Extracting features for {condition}" + Fore.BLUE,
+            colour="cyan",
+            bar_format=BLUE
+            + "{l_bar}"
+            + BLUE
+            + "{bar}"
+            + BLUE
+            + "| "
+            + BLUE
+            + "{n_fmt}"
+            + BLUE
+            + "/"
+            + BLUE
+            + "{total_fmt} ["
+            + BLUE
+            + "{elapsed}"
+            + "<"
+            + BLUE
+            + "{remaining}"
+            + ", "
+            + "{rate_fmt}"
+            "]",
+            leave=False,
+        ):
+            features[condition][epoch] = getDataframe(
+                epochs_data[condition]["Signals"][epoch], fs, resolution
+            )
 
     tqdm().set_description("All Conditions Processed")
 
@@ -207,30 +286,64 @@ def getSignalsDataframe(features: dict, epochs_data: dict):
         arousal.extend(epochs_data[condition]["Arousal"])
         valence.extend(epochs_data[condition]["Valence"])
 
-        for epoch in tqdm(features[condition],
-                          desc=Fore.BLUE + f"Concatenating Features in Dataframe for {condition}" + Fore.BLUE,
-                          colour="cyan",
-                          bar_format=BLUE + "{l_bar}" + BLUE + "{bar}" + BLUE + "| " + BLUE + "{n_fmt}" + BLUE + "/" + BLUE + "{total_fmt} [" + BLUE + "{elapsed}" + "<" + BLUE + "{remaining}" + ", " + "{rate_fmt}""]",
-                          leave=False):
+        for epoch in tqdm(
+            features[condition],
+            desc=Fore.BLUE
+            + f"Concatenating Features in Dataframe for {condition}"
+            + Fore.BLUE,
+            colour="cyan",
+            bar_format=BLUE
+            + "{l_bar}"
+            + BLUE
+            + "{bar}"
+            + BLUE
+            + "| "
+            + BLUE
+            + "{n_fmt}"
+            + BLUE
+            + "/"
+            + BLUE
+            + "{total_fmt} ["
+            + BLUE
+            + "{elapsed}"
+            + "<"
+            + BLUE
+            + "{remaining}"
+            + ", "
+            + "{rate_fmt}"
+            "]",
+            leave=False,
+        ):
             conditions.append(condition + "_" + epoch)
-            dataframe = pd.concat([dataframe, features[condition][epoch]], ignore_index=True)
+            dataframe = pd.concat(
+                [dataframe, features[condition][epoch]], ignore_index=True
+            )
 
     dataframe["Arousal"] = arousal
     dataframe["Valence"] = valence
     dataframe["Condition"] = conditions
     dataframe = dataframe.rename(
-        columns={"AVG": "AVG_RSP_Rate", "Maximum": "Max_RSP_Rate", "Minimum": "Min_RSP_Rate", "STD": "STD_RSP_Rate"})
+        columns={
+            "AVG": "AVG_RSP_Rate",
+            "Maximum": "Max_RSP_Rate",
+            "Minimum": "Min_RSP_Rate",
+            "STD": "STD_RSP_Rate",
+        }
+    )
 
     return dataframe
 
 
 @staticmethod
-def getFullDataframe(dataframe: pd.DataFrame, df_baseline: pd.DataFrame, columns: list) -> pd.DataFrame:
+def getFullDataframe(
+    dataframe: pd.DataFrame, df_baseline: pd.DataFrame, columns: list
+) -> pd.DataFrame:
     full_dataframe = pd.DataFrame(columns=columns)
 
     for index, row in dataframe.iterrows():
         full_dataframe = pd.concat(
-            [full_dataframe, row[columns] - df_baseline[columns]], ignore_index=True)
+            [full_dataframe, row[columns] - df_baseline[columns]], ignore_index=True
+        )
     full_dataframe["Arousal"] = dataframe["Arousal"]
     full_dataframe["Valence"] = dataframe["Valence"]
     full_dataframe["Condition"] = dataframe["Condition"]
@@ -246,41 +359,38 @@ def gridSearchCV(X: np.array, Y: np.array) -> dict:
 
     param_grids = {
         "KNN": {
-            'model': [neighbors.KNeighborsClassifier()],
-            'model__n_neighbors': list(range(1, 5)),
-            'model__weights': ['uniform', 'distance'],
-            'model__algorithm': ['auto', 'ball_tree', 'kd_tree', 'brute']
+            "model": [neighbors.KNeighborsClassifier()],
+            "model__n_neighbors": list(range(1, 5)),
+            "model__weights": ["uniform", "distance"],
+            "model__algorithm": ["auto", "ball_tree", "kd_tree", "brute"],
         },
         "SVM": {
-            'model': [svm.SVC(probability=True)],
-            'model__C': [0.1, 1, 10],
-            'model__kernel': ['linear', 'rbf'],
-            'model__gamma': ["scale", "auto"],
-            'model__random_state': list(range(0, 50, 2))
+            "model": [svm.SVC(probability=True)],
+            "model__C": [0.1, 1, 10],
+            "model__kernel": ["linear", "rbf"],
+            "model__gamma": ["scale", "auto"],
+            "model__random_state": list(range(0, 50, 2)),
         },
-        "Bayes": {
-            'model': [naive_bayes.GaussianNB()]
-        },  # No parameters for GaussianNB
-
+        "Bayes": {"model": [naive_bayes.GaussianNB()]},  # No parameters for GaussianNB
         "Logistic Regression": {
-            'model': [LogisticRegression()],
-            'model__C': [0.1, 1, 10],
-            'model__solver': ['lbfgs', 'newton-cg', 'sag', 'saga'],
-            'model__multi_class': ["multinomial"],
-            'model__random_state': list(range(0, 50, 5))
+            "model": [LogisticRegression()],
+            "model__C": [0.1, 1, 10],
+            "model__solver": ["lbfgs", "newton-cg", "sag", "saga"],
+            "model__multi_class": ["multinomial"],
+            "model__random_state": list(range(0, 50, 5)),
         },
         "Random Forest": {
-            'model': [ensemble.RandomForestClassifier()],
-            'model__n_estimators': [50, 100, 150],
-            'model__criterion': ["gini", "entropy", "log_loss"],
-            'model__random_state': list(range(0, 50, 5))
+            "model": [ensemble.RandomForestClassifier()],
+            "model__n_estimators": [50, 100, 150],
+            "model__criterion": ["gini", "entropy", "log_loss"],
+            "model__random_state": list(range(0, 50, 5)),
         },
         "NN": {
-            'model': [MLPClassifier()],
-            'model__activation': ['identity', 'logistic', 'tanh', 'relu'],
-            'model__solver': ['lbfgs', 'sgd', 'adam'],
-            'model__random_state': list(range(0, 50, 5))
-        }
+            "model": [MLPClassifier()],
+            "model__activation": ["identity", "logistic", "tanh", "relu"],
+            "model__solver": ["lbfgs", "sgd", "adam"],
+            "model__random_state": list(range(0, 50, 5)),
+        },
     }
 
     """Train Model using GridSearchCV"""
@@ -290,40 +400,62 @@ def gridSearchCV(X: np.array, Y: np.array) -> dict:
     # Loop through each model and parameter grid
     for model_name, param_grid in tqdm(param_grids.items()):
         # Create the pipeline
-        pipeline = Pipeline([
-            ('imputer', SimpleImputer(missing_values=np.nan, strategy="mean")),
-            ('scaler', StandardScaler()),
-            ('feature_selection', feature_selection.RFE(ensemble.RandomForestClassifier(random_state=42), step=1)),
-            ('model', param_grid['model'][0])  # Placeholder model to set pipeline structure
-        ])
+        pipeline = Pipeline(
+            [
+                ("imputer", SimpleImputer(missing_values=np.nan, strategy="mean")),
+                ("scaler", StandardScaler()),
+                (
+                    "feature_selection",
+                    feature_selection.RFE(
+                        ensemble.RandomForestClassifier(random_state=42), step=1
+                    ),
+                ),
+                (
+                    "model",
+                    param_grid["model"][0],
+                ),  # Placeholder model to set pipeline structure
+            ]
+        )
 
         # Grid search for hyperparameter tuning
         if param_grid:
-            with tqdm(total=len(param_grid), desc=f"Hyperparameter tuning for {model_name}", leave=False) as inner_bar:
+            with tqdm(
+                total=len(param_grid),
+                desc=f"Hyperparameter tuning for {model_name}",
+                leave=False,
+            ) as inner_bar:
                 grid_search = GridSearchCV(
-                    pipeline, param_grid, cv=5, n_jobs=4, verbose=2, scoring='accuracy')
+                    pipeline, param_grid, cv=5, n_jobs=4, verbose=2, scoring="accuracy"
+                )
                 grid_search.fit(X, Y.ravel())
 
                 inner_bar.update(len(param_grid))
 
                 # Store the best model and score
                 best_models[model_name] = {
-                    'best_estimator': grid_search.best_estimator_,
-                    'best_score': grid_search.best_score_
+                    "best_estimator": grid_search.best_estimator_,
+                    "best_score": grid_search.best_score_,
                 }
-                print(f"Best cross-validation accuracy for {model_name}: {grid_search.best_score_ * 100:.2f}%")
+                print(
+                    f"Best cross-validation accuracy for {model_name}: {grid_search.best_score_ * 100:.2f}%"
+                )
         else:
             # Fit the pipeline without grid search if no parameters
             pipeline.fit(X, Y.ravel())
             best_models[model_name] = {
-                'best_estimator': pipeline,
-                'best_score': pipeline.score(X, Y.ravel())  # Evaluate the score directly
+                "best_estimator": pipeline,
+                "best_score": pipeline.score(
+                    X, Y.ravel()
+                ),  # Evaluate the score directly
             }
-            print(f"No hyperparameters to tune for {model_name}. Model fitted directly.")
+            print(
+                f"No hyperparameters to tune for {model_name}. Model fitted directly."
+            )
 
-    print(f'Time to perform GridSearchCV = {time.time() - start_time} seconds')
+    print(f"Time to perform GridSearchCV = {time.time() - start_time} seconds")
 
     return best_models
+
 
 # @staticmethod
 # def getVideosDict(epochs: dict, videos: dict) -> dict:

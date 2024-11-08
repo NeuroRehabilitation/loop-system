@@ -7,10 +7,14 @@ from Signals_Processing import *
 
 warnings.filterwarnings("ignore")
 
+
 """Load Data from Folder"""
 
 folder = os.getcwd() + "\\Training Models\\"
-participant = "P3"
+
+# Prompt user to enter participant ID
+participant = input("Enter the participant ID (e.g., P3): ").strip()
+
 path = folder + participant
 
 data = {}
@@ -33,11 +37,16 @@ try:
                 condition = file.split("_")[1].split(".")[0]
 
                 data[condition] = Run_files(file_path)
+    else:
+        raise FileNotFoundError(f"The directory {path} does not exist.")
+        sys.exit(1)
 
 except FileNotFoundError:
     print(f"The directory {path} does not exist.")
+    sys.exit(1)
 except Exception as e:
     print(f"An error occurred: {e}")
+    sys.exit()
 
 """Signals Processing"""
 signals = getSignals(
