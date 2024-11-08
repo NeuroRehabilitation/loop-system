@@ -3,7 +3,10 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$/../Study1/Physiological_Data" />
     <content url="file://$MODULE_DIR$" />
-    <orderEntry type="jdk" jdkName="loopsystem" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="_Loopsystem" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+  <component name="PackageRequirementsSettings">
+    <option name="removeUnused" value="true" />
   </component>
 </module>
