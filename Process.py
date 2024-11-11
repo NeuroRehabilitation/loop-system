@@ -1,4 +1,7 @@
+import os.path
 import pickle
+
+import joblib
 
 from Signals_Processing import *
 
@@ -30,7 +33,6 @@ class Processing:
                         RESP_Dataframe = Process_RESP(self.data[name][key], fs, 16)
 
                 dataframe = (HRV_Dataframe.join(EDA_Dataframe)).join(RESP_Dataframe)
-                # dataframe = RESP_Dataframe["AVG"]
 
         return dataframe
 
@@ -69,7 +71,7 @@ class Processing:
         :return:
         :rtype:
         """
-        # print("Process")
+
         self.features = pd.DataFrame()
         if "OpenSignals" in self.data.keys():
             dataframe = self.getOpenSignals()
@@ -81,29 +83,26 @@ class Processing:
 
         return self.features
 
-    def loadModels(self, path: str, target=""):
-        try:
-            imp = pickle.load(open(path + "\\imp" + target + ".pkl", "rb"))
-        except Exception as e:
-            print(e)
-            print("Error on loading Imputer file!")
-        try:
-            scaler = pickle.load(open(path + "\\scaler" + target + ".pkl", "rb"))
-        except Exception as e:
-            print(e)
-            print("Error on loading Scaler file!")
-        try:
-            rfe = pickle.load(open(path + "\\rfe" + target + ".pkl", "rb"))
-        except Exception as e:
-            print(e)
-            print("Error on loading RFE file!")
-        try:
-            model = pickle.load(open(path + "\\model" + target + ".pkl", "rb"))
-        except Exception as e:
-            print(e)
-            print("Error on loading Model file!")
+    def loadModel(self, path: str):
 
-        return imp, scaler, rfe, model
+        model_path = os.path.join(path, "model.pkl")
+        model = None
+
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"The directory {path} does not exist.")
+            sys.exit(1)
+        elif not os.path.isfile(model_path):
+            raise FileNotFoundError(f"The file {model_path} does not exist.")
+            sys.exit(1)
+        else:
+            try:
+                model = joblib.load(model_path)
+                print("Model loaded successfully.")
+            except Exception as e:
+                print(e)
+                print("Error on loading Model file!")
+
+        return model
 
     def predict(self, imp, scaler, rfe, model):
         try:

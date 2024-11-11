@@ -1,4 +1,3 @@
-import time
 import warnings
 
 import joblib
@@ -12,12 +11,12 @@ start_time = time.time()
 
 """Load Data from Folder"""
 
-folder = os.getcwd() + "\\Training Models\\"
+folder = os.path.join(os.getcwd(), "Training Models")
 
 # Prompt user to enter participant ID
 participant = input("Enter the participant ID (e.g., P3): ").strip()
 
-path = folder + participant
+path = os.path.join(folder, participant)
 
 data = {}
 fs = 100
@@ -134,4 +133,4 @@ try:
 except Exception as e:
     print(f"Error saving the model: {e}")
 
-print(f'Elapsed time = {(time.time()-start_time)/60:.2f} minutes')
+print(f"Elapsed time = {(time.time()-start_time)/60:.2f} minutes")

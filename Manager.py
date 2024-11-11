@@ -1,6 +1,8 @@
 import csv
-from Process import *
+import os.path
+
 from DataSender import *
+from Process import *
 
 warnings.filterwarnings("ignore")
 
@@ -13,17 +15,22 @@ class Manager(multiprocessing.Process):
 
     def run(self):
         """ """
-        folder = os.getcwd() + "\\Breathing Rate\\"
-        participant = "P0"
-        path = folder + participant
+        folder = os.path.join(os.getcwd(), "Breathing Rate")
+        participant = input("Enter the participant ID (e.g., P0): ").strip()
+        path = os.path.join(folder, participant)
 
-        try:
-            f = open(path + "\\output.csv", "w", newline="")
-            writer = csv.writer(f)
-            header = ["Variable", "Value"]
-            writer.writerow(header)
-        except Exception as e:
-            print(e)
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"The directory {path} does not exist.")
+            sys.exit(1)
+        else:
+            try:
+                with open(path + "\\output.csv", "w", newline="") as f:
+                    writer = csv.writer(f)
+                    header = ["Variable", "Value"]
+                    writer.writerow(header)
+                print("Output file created successfully.")
+            except Exception as e:
+                print(f"An error occurred: {e}.")
 
         # Instantiate object from class Sync and Processing
         sync = Sync(buffer_window=40)
