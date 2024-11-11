@@ -15,7 +15,7 @@ from tqdm import tqdm
 
 # Add other content roots to sys.path
 sys.path.append(
-    os.path.abspath("C://Users//Rodrigo//Desktop//PhD//Study1//Physiological_Data//")
+    os.path.abspath("..//Study1//Physiological_Data//")
 )
 from Epochs import *
 from Load import *
@@ -366,15 +366,15 @@ def gridSearchCV(X: np.array, Y: np.array) -> dict:
         },
         "SVM": {
             "model": [svm.SVC(probability=True)],
-            "model__C": [0.1, 1, 10],
+            "model__C": [0.1, 1],
             "model__kernel": ["linear", "rbf"],
             "model__gamma": ["scale", "auto"],
-            "model__random_state": list(range(0, 50, 2)),
+            "model__random_state": list(range(0, 50, 5)),
         },
         "Bayes": {"model": [naive_bayes.GaussianNB()]},  # No parameters for GaussianNB
         "Logistic Regression": {
             "model": [LogisticRegression()],
-            "model__C": [0.1, 1, 10],
+            "model__C": [0.1, 1],
             "model__solver": ["lbfgs", "newton-cg", "sag", "saga"],
             "model__multi_class": ["multinomial"],
             "model__random_state": list(range(0, 50, 5)),

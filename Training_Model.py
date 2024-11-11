@@ -1,3 +1,4 @@
+import time
 import warnings
 
 import joblib
@@ -7,6 +8,7 @@ from Signals_Processing import *
 
 warnings.filterwarnings("ignore")
 
+start_time = time.time()
 
 """Load Data from Folder"""
 
@@ -131,3 +133,5 @@ try:
     print(f"VotingClassifier saved successfully to {path}")
 except Exception as e:
     print(f"Error saving the model: {e}")
+
+print(f'Elapsed time = {(time.time()-start_time)/60:.2f} minutes')
