@@ -35,7 +35,8 @@ class Sync(multiprocessing.Process):
         self.streams_info = []
 
         # Dictionaries to organize the data of all the streams
-        self.synced_dict, self.information, self.timestamps = (
+        self.synced_dict, self.data_to_train, self.information, self.timestamps = (
+            {},
             {},
             {},
             {},
@@ -110,9 +111,11 @@ class Sync(multiprocessing.Process):
         """
 
         self.synced_dict[stream_name]["Timestamps"].append(data[1])
+        self.data_to_train[stream_name]["Timestamps"].append(data[1])
         for i, key in enumerate(self.synced_dict[stream_name].keys()):
             if key != "Timestamps":
                 self.synced_dict[stream_name][key].append(data[0][i - 1])
+                self.data_to_train[stream_name][key].append(data[0][i - 1])
 
     def getBufferMaxSize(self, stream_name: str) -> int:
         """Set the maximum size of the buffer to fill with data
@@ -226,6 +229,7 @@ class Sync(multiprocessing.Process):
         for stream in self.streams_info:
             if "PsychoPy" not in stream["Name"]:
                 self.synced_dict[stream["Name"]] = self.createDict(stream)
+                self.data_to_train[stream["Name"]] = self.createDict(stream)
                 self.information[stream["Name"]] = stream
                 self.information[stream["Name"]]["Max Size"] = self.getBufferMaxSize(
                     stream["Name"]

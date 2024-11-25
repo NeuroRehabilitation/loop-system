@@ -14,9 +14,7 @@ from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
 
 # Add other content roots to sys.path
-sys.path.append(
-    os.path.abspath("..//Study1//Physiological_Data//")
-)
+sys.path.append(os.path.abspath("..//Study1//Physiological_Data//"))
 from Epochs import *
 from Load import *
 from Process_Features import *
@@ -27,6 +25,13 @@ BLUE = "\033[94m"
 
 @staticmethod
 def Run_files(fname):
+    """
+
+    :param fname:
+    :type fname:
+    :return:
+    :rtype:
+    """
     data, header = pyxdf.load_xdf(fname)
 
     return data
@@ -34,6 +39,15 @@ def Run_files(fname):
 
 @staticmethod
 def change_key(dictionary, key_to_remove, new_key):
+    """
+
+    :param dictionary:
+    :type dictionary:
+    :param key_to_remove:
+    :type key_to_remove:
+    :param new_key:
+    :type new_key:
+    """
     dictionary[new_key] = dictionary.pop(key_to_remove)
 
 
@@ -45,6 +59,21 @@ def Load_Data(
     ratings_stream_name: str,
     sensors: list,
 ) -> dict:
+    """
+
+    :param data:
+    :type data:
+    :param openSignals_stream_name:
+    :type openSignals_stream_name:
+    :param markers_stream_name:
+    :type markers_stream_name:
+    :param ratings_stream_name:
+    :type ratings_stream_name:
+    :param sensors:
+    :type sensors:
+    :return:
+    :rtype:
+    """
     marker, timestamps = Load_PsychopyMarkers(data, markers_stream_name)
     opensignals_data, fs = Load_Opensignals(data, openSignals_stream_name)
     ratings = Load_Ratings(data, ratings_stream_name)
@@ -76,6 +105,21 @@ def getSignals(
     ratings_stream_name: str,
     sensors: list,
 ) -> dict:
+    """
+
+    :param data:
+    :type data:
+    :param openSignals_stream_name:
+    :type openSignals_stream_name:
+    :param markers_stream_name:
+    :type markers_stream_name:
+    :param ratings_stream_name:
+    :type ratings_stream_name:
+    :param sensors:
+    :type sensors:
+    :return:
+    :rtype:
+    """
     signals = {}
 
     for condition in data:
@@ -92,6 +136,13 @@ def getSignals(
 
 @staticmethod
 def getEvents(signals) -> (dict, dict):
+    """
+
+    :param signals:
+    :type signals:
+    :return:
+    :rtype:
+    """
     epochs_markers, ratings = {}, {}
 
     for condition in signals:
@@ -135,6 +186,21 @@ def getEvents(signals) -> (dict, dict):
 def getSignalsEpochs(
     signals: dict, epochs_markers: dict, ratings: dict, window: int, fs: int
 ) -> dict:
+    """
+
+    :param signals:
+    :type signals:
+    :param epochs_markers:
+    :type epochs_markers:
+    :param ratings:
+    :type ratings:
+    :param window:
+    :type window:
+    :param fs:
+    :type fs:
+    :return:
+    :rtype:
+    """
     epochs_data = {}
 
     for condition in epochs_markers:
@@ -226,6 +292,17 @@ def getSignalsEpochs(
 
 @staticmethod
 def getDataframe(dataframe, fs, resolution):
+    """
+
+    :param dataframe:
+    :type dataframe:
+    :param fs:
+    :type fs:
+    :param resolution:
+    :type resolution:
+    :return:
+    :rtype:
+    """
     HRV_Dataframe = Process_HRV(dataframe["ECG"], fs, resolution)
     RESP_Dataframe = Process_RESP(dataframe["RESP"], fs, resolution)
     EDA_Dataframe = Process_EDA(dataframe["EDA"], fs, resolution)
@@ -236,6 +313,17 @@ def getDataframe(dataframe, fs, resolution):
 
 @staticmethod
 def getFeatures(epochs_data: dict, fs: int, resolution: int) -> dict:
+    """
+
+    :param epochs_data:
+    :type epochs_data:
+    :param fs:
+    :type fs:
+    :param resolution:
+    :type resolution:
+    :return:
+    :rtype:
+    """
     features = {}
 
     for condition in tqdm(epochs_data):
@@ -277,6 +365,15 @@ def getFeatures(epochs_data: dict, fs: int, resolution: int) -> dict:
 
 @staticmethod
 def getSignalsDataframe(features: dict, epochs_data: dict):
+    """
+
+    :param features:
+    :type features:
+    :param epochs_data:
+    :type epochs_data:
+    :return:
+    :rtype:
+    """
     BLUE = "\033[94m"
 
     dataframe = pd.DataFrame(columns=features["Baseline"]["1"].columns)
@@ -338,6 +435,17 @@ def getSignalsDataframe(features: dict, epochs_data: dict):
 def getFullDataframe(
     dataframe: pd.DataFrame, df_baseline: pd.DataFrame, columns: list
 ) -> pd.DataFrame:
+    """
+
+    :param dataframe:
+    :type dataframe:
+    :param df_baseline:
+    :type df_baseline:
+    :param columns:
+    :type columns:
+    :return:
+    :rtype:
+    """
     full_dataframe = pd.DataFrame(columns=columns)
 
     for index, row in dataframe.iterrows():
@@ -353,17 +461,20 @@ def getFullDataframe(
 
 @staticmethod
 def gridSearchCV(X: np.array, Y: np.array) -> dict:
+    """
+
+    :param X:
+    :type X:
+    :param Y:
+    :type Y:
+    :return:
+    :rtype:
+    """
     start_time = time.time()
 
     """Models Parameters for GridSearch"""
 
     param_grids = {
-        "KNN": {
-            "model": [neighbors.KNeighborsClassifier()],
-            "model__n_neighbors": list(range(1, 5)),
-            "model__weights": ["uniform", "distance"],
-            "model__algorithm": ["auto", "ball_tree", "kd_tree", "brute"],
-        },
         "SVM": {
             "model": [svm.SVC(probability=True)],
             "model__C": [0.1, 1],

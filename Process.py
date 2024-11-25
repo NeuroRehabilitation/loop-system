@@ -8,10 +8,12 @@ from Signals_Processing import *
 
 class Processing:
     def __init__(self):
+        self.features = None
         self.info = []
         self.data = {}
 
-    def getOpenSignals(self):
+    @staticmethod
+    def getOpenSignals(data: dict, info: list):
         """
 
         :return:
@@ -20,17 +22,17 @@ class Processing:
 
         dataframe, HRV_Dataframe, EDA_Dataframe, RESP_Dataframe = None, None, None, None
 
-        for stream in self.info:
+        for stream in info:
             if stream["Name"] == "OpenSignals":
                 name = stream["Name"]
                 fs = stream["Sampling Rate"]
-                for key in self.data[name].keys():
+                for key in data[name].keys():
                     if key.startswith("ECG"):
-                        HRV_Dataframe = Process_HRV(self.data[name][key], fs, 16)
+                        HRV_Dataframe = Process_HRV(data[name][key], fs, 16)
                     if key.startswith("EDA"):
-                        EDA_Dataframe = Process_EDA(self.data[name][key], fs, 16)
+                        EDA_Dataframe = Process_EDA(data[name][key], fs, 16)
                     if key.startswith("RESP"):
-                        RESP_Dataframe = Process_RESP(self.data[name][key], fs, 16)
+                        RESP_Dataframe = Process_RESP(data[name][key], fs, 16)
 
                 dataframe = (HRV_Dataframe.join(EDA_Dataframe)).join(RESP_Dataframe)
 
@@ -73,8 +75,9 @@ class Processing:
         """
 
         self.features = pd.DataFrame()
+        dataframe = None
         if "OpenSignals" in self.data.keys():
-            dataframe = self.getOpenSignals()
+            dataframe = self.getOpenSignals(self.data, self.info)
         # if "openvibeSignal" in self.data.keys():
         #     EEG_dataframe = self.getOpenvibe()
 
@@ -83,7 +86,8 @@ class Processing:
 
         return self.features
 
-    def loadModel(self, path: str):
+    @staticmethod
+    def loadModel(path: str):
 
         model_path = os.path.join(path, "model.pkl")
         model = None

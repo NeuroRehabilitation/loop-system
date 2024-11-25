@@ -12,34 +12,51 @@ class Manager(multiprocessing.Process):
         self.outlet_stream = None
         self.data_to_stream = None
         self.data_queue = multiprocessing.Queue()
+        self.training_df = None
 
     def run(self):
         """ """
         folder = os.path.join(os.getcwd(), "Breathing Rate")
         participant = input("Enter the participant ID (e.g., P0): ").strip()
-        path = os.path.join(folder, participant)
 
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"The directory {path} does not exist.")
-            sys.exit(1)
+        if participant:
+            path = os.path.join(folder, participant)
+
+            if not os.path.exists(path):
+                raise FileNotFoundError(f"The directory {path} does not exist.")
+                sys.exit(1)
+            else:
+                try:
+                    with open(path + "\\output.csv", "w", newline="") as f:
+                        writer = csv.writer(f)
+                        header = ["Variable", "Value"]
+                        writer.writerow(header)
+                    print("Output file created successfully.")
+                except Exception as e:
+                    print(f"An error occurred: {e}.")
+                try:
+                    self.training_df = pd.read_csv(
+                        path + "\\sr_dataframe.csv", sep=",", index_col=False
+                    )
+                except Exception as e:
+                    print(f"Error loading training dataframe: {e}.")
         else:
-            try:
-                with open(path + "\\output.csv", "w", newline="") as f:
-                    writer = csv.writer(f)
-                    header = ["Variable", "Value"]
-                    writer.writerow(header)
-                print("Output file created successfully.")
-            except Exception as e:
-                print(f"An error occurred: {e}.")
+            print("No participant ID provided. Exiting...")
+            sys.exit(1)
 
         # Instantiate object from class Sync and Processing
-        sync = Sync(buffer_window=40)
+        sync = Sync(buffer_window=60)
         process = Processing()
+
+        input("Press Enter to start acquisition...")
 
         # Start process Sync and put flag startAcquisition as True
         sync.start()
         sync.startAcquisition.value = 1
         sync.sendBuffer.value = 1
+
+        print("Acquisition Started!")
+
         i = 0
         previous_value = 0
 
@@ -61,7 +78,7 @@ class Manager(multiprocessing.Process):
                 delta_time=5,
             )
             data_sender.start()
-            # While is acquiring data
+            # While it is acquiring data
             while bool(sync.startAcquisition.value):
                 if sync.markers_queue.qsize() > 0:
                     video, marker = sync.markers_queue.get()
