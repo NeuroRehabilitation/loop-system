@@ -1,4 +1,7 @@
+import sys
+import time
 from collections import deque
+from io import StringIO
 
 from ReceiveStreams import *
 
@@ -170,7 +173,7 @@ class Sync(multiprocessing.Process):
                 else:
                     if all(i >= self.first_timestamp for i in self.timestamps.values()):
                         self.isSync = True
-                        print("Streams are Synced.")
+                        print("\nStreams are Synced.")
 
     def getBuffers(self, data: tuple, stream_name: str) -> None:
         """
@@ -253,6 +256,7 @@ class Sync(multiprocessing.Process):
                         self.getPsychoPyData(data, stream_name)
                     else:
                         self.getBuffers(data, stream_name)
+
             if not self.isFirstBuffer and self.sendBuffer.value == 1:
                 with self.lock:
                     self.buffer_queue.put(self.synced_dict)
