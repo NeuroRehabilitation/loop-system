@@ -101,24 +101,23 @@ class Processing:
         else:
             try:
                 model = joblib.load(model_path)
-                print("Model loaded successfully.")
+                print("Model loaded successfully.\n")
+                print(model)
             except Exception as e:
                 print(e)
                 print("Error on loading Model file!")
 
         return model
 
-    def predict(self, imp, scaler, rfe, model):
+    def predict(self, model):
         try:
             X = np.array(self.features)
             if len(X) > 0:
-                X = imp.transform(X)
-                X = scaler.transform(X)
-                X = rfe.transform(X)
-
                 prediction = model.predict(X)
+                index = list(model.classes_).index(prediction[0])
+                probability = model.predict_proba(X)[0][index]
 
-                return prediction
+                return prediction, probability
             else:
                 print("X has no data!")
         except Exception as e:

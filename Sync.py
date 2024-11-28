@@ -1,7 +1,10 @@
+import os
 import sys
 import time
 from collections import deque
 from io import StringIO
+
+import numpy as np
 
 from ReceiveStreams import *
 
@@ -239,8 +242,12 @@ class Sync(multiprocessing.Process):
                 )
                 self.information[stream["Name"]]["Full Buffer"] = False
 
+        start_time = time.time()
         # Loop to receive the data - start acquisition is true
         while bool(self.startAcquisition.value):
+            if self.isFirstBuffer:
+                elapsed = time.time() - start_time
+                print(f"Elapsed Time = {elapsed:.2f} seconds.")
             # Synchronize the data
             if not self.isSync:
                 if streams_receiver.data_queue.qsize() > 0:
@@ -259,7 +266,9 @@ class Sync(multiprocessing.Process):
 
             if not self.isFirstBuffer and self.sendBuffer.value == 1:
                 with self.lock:
+                    # print("Sync has lock.")
                     self.buffer_queue.put(self.synced_dict)
+                    # print(f"Queue size = {self.buffer_queue.qsize()}")
 
         # Stop all running child processes
         streams_receiver.stopChildProcesses()

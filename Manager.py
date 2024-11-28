@@ -16,6 +16,7 @@ class Manager(multiprocessing.Process):
         self.data_to_stream = None
         self.data_queue = multiprocessing.Queue()
         self.training_df = None
+        self.baseline = None
         self.model = None
 
     def run(self):
@@ -25,7 +26,7 @@ class Manager(multiprocessing.Process):
         process = Processing()
         modelTrainer = ModelTrainer()
 
-        folder = os.path.join(os.getcwd(), "Breathing Rate")
+        folder = os.path.join(os.getcwd(), "Models")
         participant = input("Enter the participant ID (e.g., P0): ").strip()
 
         if participant:
@@ -50,6 +51,14 @@ class Manager(multiprocessing.Process):
                 except Exception as e:
                     print(f"Error loading training dataframe: {e}.")
                 try:
+                    self.baseline = pd.read_csv(
+                        path + "\\baseline.csv", sep=";", index_col=False
+                    )
+                    print("Baseline Dataframe loaded successfully.\n")
+                    print(self.baseline)
+                except Exception as e:
+                    print(f"Error loading training dataframe: {e}.")
+                try:
                     self.model = process.loadModel(path)
                 except Exception as e:
                     print(f"Error loading model: {e}.")
@@ -67,7 +76,7 @@ class Manager(multiprocessing.Process):
         print("Acquisition Started!")
 
         i = 0
-        previous_value = 0
+        previous_df = None
 
         br, markers = [], []
         video = ""
@@ -87,15 +96,10 @@ class Manager(multiprocessing.Process):
                 delta_time=5,
             )
             data_sender.start()
-            start_time = time.time()
 
             # While it is acquiring data
             while bool(sync.startAcquisition.value):
-                elapsed = time.time() - start_time
-                # sys.stdout.write(f"\rElapsed Time: {elapsed:.2f} seconds")
-                sys.stdout.write(f"\r Queue size = {sync.buffer_queue.qsize()}")
-                sys.stdout.flush()
-                time.sleep(0.1)  # Update every 100 ms
+
                 if sync.markers_queue.qsize() > 0:
                     video, marker = sync.markers_queue.get()
                     print("Video = " + str(video))
@@ -105,27 +109,43 @@ class Manager(multiprocessing.Process):
                 # If there is data in the buffer queue from Sync, send to Process.
                 if sync.buffer_queue.qsize() > 0:
                     sync.sendBuffer.value = 0
-                    process.data = sync.buffer_queue.get()
-                    i += 1
-                    process.features = process.processData()
-
-                    if (
-                        not np.isnan(process.features[0])
-                        and process.features[0] != previous_value
-                    ):
-                        self.data_queue.put(process.features[0])
-                        print(process.features[0])
-                        previous_value = process.features[0]
+                    with sync.lock:
+                        # print("Manager has lock.")
+                        process.data = sync.buffer_queue.get()
+                        i += 1
+                        features = process.processData()
+                        # print(features)
+                        process.features = features - self.baseline
+                        # print(process.features)
+                        if previous_df is not None and features is not None:
+                            if not np.allclose(
+                                features.values, previous_df.values, atol=1e-3
+                            ):
+                                predicted_sample, probability = process.predict(
+                                    self.model
+                                )
+                                print(
+                                    f"Prediction = {predicted_sample[0]}, Probability = {probability}."
+                                )
+                        #
+                        # if (
+                        #     not np.isnan(process.features[0])
+                        #     and process.features[0] != previous_value
+                        # ):
+                        #     self.data_queue.put(process.features[0])
+                        #     print(process.features[0])
+                        #     previous_value = process.features[0]
                         # br.append(process.features[0])
                         # markers.append(video)
 
-                    sync.sendBuffer.value = 1
+                        sync.sendBuffer.value = 1
+                        previous_df = features
 
         except Exception as e:
             print(e)
         finally:
-            for i in range(len(br)):
-                writer.writerow([markers[i], br[i]])
+            # for i in range(len(br)):
+            #     writer.writerow([markers[i], br[i]])
             f.close()
             print("File Closed")
             sync.terminate()
