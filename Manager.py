@@ -52,12 +52,15 @@ class Manager(multiprocessing.Process):
                     print(f"Error loading training dataframe: {e}.")
                 try:
                     self.baseline = pd.read_csv(
-                        path + "\\baseline.csv", sep=";", index_col=False
+                        path + "\\Baseline\\df_baseline.csv",
+                        sep=";",
+                        index_col=False,
                     )
+                    self.baseline = self.baseline.drop("Unnamed: 0", axis=1)
                     print("Baseline Dataframe loaded successfully.\n")
                     print(self.baseline)
                 except Exception as e:
-                    print(f"Error loading training dataframe: {e}.")
+                    print(f"Error loading baseline dataframe: {e}.")
                 try:
                     self.model = process.loadModel(path)
                 except Exception as e:
@@ -127,16 +130,6 @@ class Manager(multiprocessing.Process):
                                 print(
                                     f"Prediction = {predicted_sample[0]}, Probability = {probability}."
                                 )
-                        #
-                        # if (
-                        #     not np.isnan(process.features[0])
-                        #     and process.features[0] != previous_value
-                        # ):
-                        #     self.data_queue.put(process.features[0])
-                        #     print(process.features[0])
-                        #     previous_value = process.features[0]
-                        # br.append(process.features[0])
-                        # markers.append(video)
 
                         sync.sendBuffer.value = 1
                         previous_df = features

@@ -1,3 +1,4 @@
+import time
 import warnings
 from Signals_Processing import *
 
@@ -7,17 +8,19 @@ start_time = time.time()
 
 """Load Data from Folder"""
 
-folder = os.path.join(os.getcwd(), "Training Models")
+folder = os.path.join(os.getcwd(), "Models")
 
 # Prompt user to enter participant ID
 participant = input("Enter the participant ID (e.g., P0): ").strip()
 
 path = os.path.join(folder, participant)
-
+path = os.path.join(path, "Baseline")
 data = {}
 fs = 100
 resolution = 16
 sensors = ["ECG", "EDA", "RESP"]
+
+start_time = time.time()
 
 try:
     if os.path.isdir(path):
@@ -53,16 +56,17 @@ epochs_markers, ratings = getEvents(signals)
 
 """Baseline Dataframe"""
 baseline_signals = nk.epochs_create(
-    pd.DataFrame.from_dict(signals["Baseline"]["Signals"]),
-    events=epochs_markers["Baseline"]["Onset_index"],
+    pd.DataFrame.from_dict(signals["baseline"]["Signals"]),
+    events=epochs_markers["baseline"]["Onset_index"],
     sampling_rate=fs,
     epochs_start=0,
-    epochs_end=epochs_markers["Baseline"]["EventsDiff"],
+    epochs_end=epochs_markers["baseline"]["EventsDiff"],
 )
 df_baseline = getDataframe(baseline_signals["1"], fs, resolution)
 
 try:
     df_baseline.to_csv(path + "\\df_baseline.csv", sep=";")
+    print(f"Time elapsed = {(time.time()-start_time):.2f} seconds.")
     print(f"Baseline Dataframe saved to {path}.")
 except Exception as e:
     print(f"An error occurred saving the Baseline Dataframe: {e}")

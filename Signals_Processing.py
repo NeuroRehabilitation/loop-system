@@ -210,7 +210,7 @@ def getSignalsEpochs(
             fs,
         )
 
-        match (condition):
+        match condition:
             case "Baseline":
                 arousal_values = ["Low" for _ in range(len(events))]
                 valence_values = ["Low" for _ in range(len(events))]
@@ -218,6 +218,115 @@ def getSignalsEpochs(
                 epochs_signals = nk.epochs_create(
                     pd.DataFrame.from_dict(signals[condition]["Signals"]),
                     events=events,
+                    sampling_rate=fs,
+                    epochs_start=0,
+                    epochs_end=window,
+                )
+            case "NBack":
+                one_back_markers = {
+                    "Marker": [
+                        marker
+                        for marker in epochs_markers[condition]["Marker"]
+                        if "1-Back" in marker
+                    ],
+                    "Onset_index": [
+                        index
+                        for index, marker in zip(
+                            epochs_markers[condition]["Onset_index"],
+                            epochs_markers[condition]["Marker"],
+                        )
+                        if "1-Back" in marker
+                    ],
+                    "Offset_index": [
+                        index
+                        for index, marker in zip(
+                            epochs_markers[condition]["Offset_index"],
+                            epochs_markers[condition]["Marker"],
+                        )
+                        if "1-Back" in marker
+                    ],
+                }
+                two_back_markers = {
+                    "Marker": [
+                        marker
+                        for marker in epochs_markers[condition]["Marker"]
+                        if "2-Back" in marker
+                    ],
+                    "Onset_index": [
+                        index
+                        for index, marker in zip(
+                            epochs_markers[condition]["Onset_index"],
+                            epochs_markers[condition]["Marker"],
+                        )
+                        if "2-Back" in marker
+                    ],
+                    "Offset_index": [
+                        index
+                        for index, marker in zip(
+                            epochs_markers[condition]["Offset_index"],
+                            epochs_markers[condition]["Marker"],
+                        )
+                        if "2-Back" in marker
+                    ],
+                }
+                four_back_markers = {
+                    "Marker": [
+                        marker
+                        for marker in epochs_markers[condition]["Marker"]
+                        if "4-Back" in marker
+                    ],
+                    "Onset_index": [
+                        index
+                        for index, marker in zip(
+                            epochs_markers[condition]["Onset_index"],
+                            epochs_markers[condition]["Marker"],
+                        )
+                        if "4-Back" in marker
+                    ],
+                    "Offset_index": [
+                        index
+                        for index, marker in zip(
+                            epochs_markers[condition]["Offset_index"],
+                            epochs_markers[condition]["Marker"],
+                        )
+                        if "4-Back" in marker
+                    ],
+                }
+
+                one_back_events = list(
+                    np.arange(
+                        one_back_markers["Onset_index"][0],
+                        one_back_markers["Offset_index"][-1] - window * fs,
+                        fs,
+                    )
+                )
+                two_back_events = list(
+                    np.arange(
+                        two_back_markers["Onset_index"][0],
+                        two_back_markers["Offset_index"][-1] - window * fs,
+                        fs,
+                    )
+                )
+
+                four_back_events = list(
+                    np.arange(
+                        four_back_markers["Onset_index"][0],
+                        four_back_markers["Offset_index"][-1] - window * fs,
+                        fs,
+                    )
+                )
+
+                n_back_events = one_back_events + two_back_events + four_back_events
+
+                arousal_values = (
+                    len(one_back_events) * ["Low"]
+                    + len(two_back_events) * ["Medium"]
+                    + len(four_back_events) * ["High"]
+                )
+
+                epochs_signals = nk.epochs_create(
+                    pd.DataFrame.from_dict(signals[condition]["Signals"]),
+                    events=n_back_events,
                     sampling_rate=fs,
                     epochs_start=0,
                     epochs_end=window,
@@ -284,7 +393,7 @@ def getSignalsEpochs(
         epochs_data[condition] = {
             "Signals": epochs_signals,
             "Arousal": arousal_values,
-            "Valence": valence_values,
+            # "Valence": valence_values,
         }
 
     return epochs_data
@@ -364,7 +473,7 @@ def getFeatures(epochs_data: dict, fs: int, resolution: int) -> dict:
 
 
 @staticmethod
-def getSignalsDataframe(features: dict, epochs_data: dict):
+def getSignalsDataframe(features: dict, epochs_data: dict, df_baseline):
     """
 
     :param features:
@@ -376,12 +485,12 @@ def getSignalsDataframe(features: dict, epochs_data: dict):
     """
     BLUE = "\033[94m"
 
-    dataframe = pd.DataFrame(columns=features["Baseline"]["1"].columns)
+    dataframe = pd.DataFrame(columns=df_baseline.columns)
     users, conditions, arousal, valence = [], [], [], []
 
     for condition in tqdm(features):
         arousal.extend(epochs_data[condition]["Arousal"])
-        valence.extend(epochs_data[condition]["Valence"])
+        # valence.extend(epochs_data[condition]["Valence"])
 
         for epoch in tqdm(
             features[condition],
@@ -417,8 +526,8 @@ def getSignalsDataframe(features: dict, epochs_data: dict):
             )
 
     dataframe["Arousal"] = arousal
-    dataframe["Valence"] = valence
-    dataframe["Condition"] = conditions
+    # dataframe["Valence"] = valence
+    # dataframe["Condition"] = conditions
     dataframe = dataframe.rename(
         columns={
             "AVG": "AVG_RSP_Rate",
@@ -453,8 +562,8 @@ def getFullDataframe(
             [full_dataframe, row[columns] - df_baseline[columns]], ignore_index=True
         )
     full_dataframe["Arousal"] = dataframe["Arousal"]
-    full_dataframe["Valence"] = dataframe["Valence"]
-    full_dataframe["Condition"] = dataframe["Condition"]
+    # full_dataframe["Valence"] = dataframe["Valence"]
+    # full_dataframe["Condition"] = dataframe["Condition"]
 
     return full_dataframe
 

@@ -25,11 +25,9 @@ class Sync(multiprocessing.Process):
             self.data_queue,
             self.buffer_queue,
             self.markers_queue,
-            self.valence_queue,
-            self.arousal_queue,
+            self.data_train_queue,
             self.info_queue,
         ) = (
-            multiprocessing.Queue(),
             multiprocessing.Queue(),
             multiprocessing.Queue(),
             multiprocessing.Queue(),
