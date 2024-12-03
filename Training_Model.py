@@ -30,7 +30,7 @@ try:
 except Exception as e:
     print(f"An error occurred loading the Baseline Dataframe: {e}")
 
-path = os.path.join(path, "N-Back")
+nback_path = os.path.join(path, "N-Back")
 
 data = {}
 fs = 100
@@ -38,26 +38,26 @@ resolution = 16
 sensors = ["ECG", "EDA", "RESP"]
 
 try:
-    if os.path.isdir(path):
-        print(f"Loading data from {path}.")
+    if os.path.isdir(nback_path):
+        print(f"Loading data from {nback_path}.")
 
-        xdf_files = [file for file in os.listdir(path) if file.endswith(".xdf")]
+        xdf_files = [file for file in os.listdir(nback_path) if file.endswith(".xdf")]
 
         if not xdf_files:
             print("No .xdf files found.")
         else:
             for file in xdf_files:
-                file_path = os.path.join(path, file)
+                file_path = os.path.join(nback_path, file)
 
                 condition = file.split("_")[1].split(".")[0]
 
                 data[condition] = Run_files(file_path)
     else:
-        raise FileNotFoundError(f"The directory {path} does not exist.")
+        raise FileNotFoundError(f"The directory {nback_path} does not exist.")
         sys.exit(1)
 
 except FileNotFoundError:
-    print(f"The directory {path} does not exist.")
+    print(f"The directory {nback_path} does not exist.")
     sys.exit(1)
 except Exception as e:
     print(f"An error occurred: {e}")
@@ -87,7 +87,7 @@ except Exception as e:
     print(f"An error occurred saving the Features Dataframe: {e}")
 
 """Subtract baseline features to dataframe"""
-columns = dataframe.columns[: len(dataframe.columns) - 2]
+columns = dataframe.columns[: len(dataframe.columns) - 1]
 full_dataframe = getFullDataframe(dataframe, df_baseline, columns)
 
 try:
@@ -95,9 +95,6 @@ try:
     print(f"Full Dataframe saved to {path}.")
 except Exception as e:
     print(f"An error occurred saving the Full Dataframe: {e}")
-
-full_dataframe = pd.read_csv(path + "\\full_dataframe.csv", sep=";")
-columns = full_dataframe.columns[: (len(full_dataframe.columns) - 3)]
 
 """Input Data for Models"""
 # X = np.array(full_dataframe[columns])

@@ -46,8 +46,11 @@ class Manager(multiprocessing.Process):
                     print(f"An error occurred: {e}.")
                 try:
                     self.training_df = pd.read_csv(
-                        path + "\\sr_dataframe.csv", sep=",", index_col=False
+                        path + "\\full_dataframe.csv", sep=";", index_col=False
                     )
+                    self.training_df = self.training_df.drop("Unnamed: 0", axis=1)
+                    print(self.training_df)
+                    print("Training Dataframe loaded successfully.\n")
                 except Exception as e:
                     print(f"Error loading training dataframe: {e}.")
                 try:
