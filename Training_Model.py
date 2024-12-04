@@ -97,35 +97,35 @@ except Exception as e:
     print(f"An error occurred saving the Full Dataframe: {e}")
 
 """Input Data for Models"""
-# X = np.array(full_dataframe[columns])
-# Y = np.array(full_dataframe[["Arousal"]])
-#
-# """GridSearchCV"""
-# best_models = gridSearchCV(X, Y)
-#
-#
-# # Sort the models by their best score in descending order
-# sorted_models = sorted(
-#     best_models.items(), key=lambda item: item[1]["best_score"], reverse=True
-# )
-#
-# # Select the top two models
-# best_two_models = sorted_models[:2]
-#
-# estimators = [
-#     (model_name, info["best_estimator"]) for model_name, info in best_two_models
-# ]
-#
-# # Create a VotingClassifier with the best two models
-# voting_clf = VotingClassifier(
-#     estimators=estimators, voting="soft"
-# )  # You can also use 'hard' voting
-# voting_clf.fit(X, Y.ravel())
-#
-# try:
-#     joblib.dump(voting_clf, f"{path}/model.pkl")
-#     print(f"VotingClassifier saved successfully to {path}")
-# except Exception as e:
-#     print(f"Error saving the model: {e}")
+X = np.array(full_dataframe[columns])
+Y = np.array(full_dataframe[["Arousal"]])
+
+"""GridSearchCV"""
+best_models = gridSearchCV(X, Y)
+
+
+# Sort the models by their best score in descending order
+sorted_models = sorted(
+    best_models.items(), key=lambda item: item[1]["best_score"], reverse=True
+)
+
+# Select the top two models
+best_two_models = sorted_models[:2]
+
+estimators = [
+    (model_name, info["best_estimator"]) for model_name, info in best_two_models
+]
+
+# Create a VotingClassifier with the best two models
+voting_clf = VotingClassifier(
+    estimators=estimators, voting="soft"
+)  # You can also use 'hard' voting
+voting_clf.fit(X, Y.ravel())
+
+try:
+    joblib.dump(voting_clf, f"{path}/model.pkl")
+    print(f"VotingClassifier saved successfully to {path}")
+except Exception as e:
+    print(f"Error saving the model: {e}")
 
 print(f"Elapsed time = {(time.time()-start_time)/60:.2f} minutes")
