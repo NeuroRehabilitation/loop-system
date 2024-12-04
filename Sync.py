@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import sys
 import time
@@ -54,7 +55,7 @@ class Sync(multiprocessing.Process):
         self.sendBuffer = multiprocessing.Value("i", 0)
 
         # Locks of the system
-        self.lock = multiprocessing.Lock()
+        self.lock, self.train_lock = multiprocessing.Lock(), multiprocessing.Lock()
 
         # Number of full buffers from all the streams
         self.n_full_buffers = 0
@@ -105,6 +106,17 @@ class Sync(multiprocessing.Process):
 
         return dict
 
+    def clearDict(self, stream_name: str):
+        for key in self.data_to_train[stream_name].keys():
+            self.data_to_train[stream_name][key].clear()
+
+    def fill_TrainingData(self, data: tuple, stream_name: str) -> None:
+
+        self.data_to_train[stream_name]["Timestamps"].append(data[1])
+        for i, key in enumerate(self.data_to_train[stream_name].keys()):
+            if key != "Timestamps":
+                self.data_to_train[stream_name][key].append(data[0][i - 1])
+
     def fillData(self, data: tuple, stream_name: str) -> None:
         """Function to fill the dictionary synced_dict with the data from each stream
 
@@ -115,11 +127,10 @@ class Sync(multiprocessing.Process):
         """
 
         self.synced_dict[stream_name]["Timestamps"].append(data[1])
-        self.data_to_train[stream_name]["Timestamps"].append(data[1])
+
         for i, key in enumerate(self.synced_dict[stream_name].keys()):
             if key != "Timestamps":
                 self.synced_dict[stream_name][key].append(data[0][i - 1])
-                self.data_to_train[stream_name][key].append(data[0][i - 1])
 
     def getBufferMaxSize(self, stream_name: str) -> int:
         """Set the maximum size of the buffer to fill with data
@@ -187,23 +198,35 @@ class Sync(multiprocessing.Process):
         """
         # In case of the data being synchronized
         if self.isSync:
-            with self.lock:
-                # print("Get Buffer")
-                if "PsychoPy" not in stream_name:
-                    # If buffers are not full keep checking the size of the buffers
-                    self.checkBufferSize(
-                        self.information[stream_name]["Max Size"],
-                        stream_name,
-                    )
-                    # In case it is the first buffer of data
-                    if not self.information[stream_name]["Full Buffer"]:
-                        # Fills the first buffer of data with data
-                        self.fillData(data, stream_name)
-                    else:
-                        # If it is not the first buffer (buffers are with max size)
-                        # Start sliding window and put buffers on the Queue to send to process
-                        self.slidingWindow(stream_name)
-                        self.fillData(data, stream_name)
+            # print("Get Buffer")
+            if "PsychoPy" not in stream_name:
+                # If buffers are not full keep checking the size of the buffers
+                self.checkBufferSize(
+                    self.information[stream_name]["Max Size"],
+                    stream_name,
+                )
+                self.fill_TrainingData(data, stream_name)
+
+                # In case it is the first buffer of data
+                if not self.information[stream_name]["Full Buffer"]:
+                    # Fills the first buffer of data with data
+                    self.fillData(data, stream_name)
+                else:
+                    buffer_len = [
+                        len(value) for value in self.data_to_train[stream_name].values()
+                    ]
+                    if all(
+                        i >= self.information[stream_name]["Max Size"]
+                        for i in buffer_len
+                    ):
+                        self.data_train_queue.put(self.data_to_train)
+                        print("Putting Data in Queue.")
+                        self.clearDict(stream_name)
+                        print("Clearing Data.")
+                    # If it is not the first buffer (buffers are with max size)
+                    # Start sliding window and put buffers on the Queue to send to process
+                    self.slidingWindow(stream_name)
+                    self.fillData(data, stream_name)
 
     def getPsychoPyData(self, data: tuple, stream_name: str) -> None:
         """

@@ -76,6 +76,7 @@ class Manager(multiprocessing.Process):
 
         # Start process Sync and put flag startAcquisition as True
         sync.start()
+        modelTrainer.start()
         sync.startAcquisition.value = 1
         sync.sendBuffer.value = 1
 
@@ -111,6 +112,19 @@ class Manager(multiprocessing.Process):
                     print("Video = " + str(video))
                     if video == "end":
                         sync.startAcquisition.value = 0
+
+                if sync.data_train_queue.qsize() > 0:
+                    print("Getting data to train from Queue.")
+                    data_to_train = sync.data_train_queue.get()
+                    new_sample = process.getOpenSignals(data_to_train, process.info)
+                    print(new_sample)
+                    new_sample_label = self.model.predict(np.array(new_sample))[0]
+                    print(new_sample_label)
+                    with modelTrainer.lock:
+                        print("Sending data to Model Trainer.")
+                        modelTrainer.model_queue.put(
+                            (self.model, self.training_df, new_sample)
+                        )
 
                 # If there is data in the buffer queue from Sync, send to Process.
                 if sync.buffer_queue.qsize() > 0:

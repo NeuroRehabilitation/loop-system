@@ -67,8 +67,8 @@ class ModelTrainer(multiprocessing.Process):
     def receive_data(self):
         """Receive model and training data from the Manager."""
         if self.running:
-            with self.lock:
-                if self.model_queue.qsize() > 0:
+            if self.model_queue.qsize() > 0:
+                with self.lock:
                     print("Getting model from Queue.")
                     self.model, self.training_data, self.new_data = (
                         self.model_queue.get()
