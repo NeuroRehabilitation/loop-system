@@ -117,15 +117,13 @@ class Manager(multiprocessing.Process):
                         sync.startAcquisition.value = 0
 
                 if sync.data_train_queue.qsize() > 0:
-                    print("Getting Training Data from Sync Queue.")
-                    data_to_train = sync.data_train_queue.get()
-                    try:
-                        new_sample = process.getOpenSignals(data_to_train, process.info)
-                        new_sample_label = self.model.predict(np.array(new_sample))[0]
-                        print(type(new_sample))
-                    except Exception as e:
-                        new_sample = None
-                        print(f"Error loading model: {e}.")
+                    with sync.train_lock:
+                        data_to_train = sync.data_train_queue.get()
+                        print("Getting Training Data from Sync Queue.")
+                        # print(data_to_train)
+
+                    new_sample = process.getOpenSignals(data_to_train, process.info)
+                    new_sample_label = self.model.predict(np.array(new_sample))[0]
                     print(new_sample)
                     with modelTrainer.lock:
                         modelTrainer.model_queue.put(new_sample)

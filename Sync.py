@@ -107,8 +107,11 @@ class Sync(multiprocessing.Process):
         return dict
 
     def clearDict(self, stream_name: str):
-        for key in self.data_to_train[stream_name].keys():
-            self.data_to_train[stream_name][key].clear()
+        if self.data_train_queue.qsize() > 0:
+            print(self.data_to_train)
+            print("Clearing Data.")
+            for key in self.data_to_train[stream_name].keys():
+                self.data_to_train[stream_name][key].clear()
 
     def fill_TrainingData(self, data: tuple, stream_name: str) -> None:
 
@@ -219,10 +222,12 @@ class Sync(multiprocessing.Process):
                         i >= self.information[stream_name]["Max Size"]
                         for i in buffer_len
                     ):
-                        self.data_train_queue.put(self.data_to_train)
-                        print("Putting Training data in Manager Queue.")
+                        with self.train_lock:
+                            # print(self.data_to_train)
+                            self.data_train_queue.put(self.data_to_train)
+                            print("Putting Training data in Manager Queue.")
+
                         self.clearDict(stream_name)
-                        print("Clearing Data.")
                     # If it is not the first buffer (buffers are with max size)
                     # Start sliding window and put buffers on the Queue to send to process
                     self.slidingWindow(stream_name)
@@ -268,7 +273,7 @@ class Sync(multiprocessing.Process):
         while bool(self.startAcquisition.value):
             # if self.isFirstBuffer:
             #     elapsed = time.time() - start_time
-            # print(f"Elapsed Time = {elapsed:.2f} seconds.")
+            #     print(f"Elapsed Time = {elapsed:.2f} seconds.")
             # Synchronize the data
             if not self.isSync:
                 if streams_receiver.data_queue.qsize() > 0:

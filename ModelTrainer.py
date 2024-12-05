@@ -31,28 +31,33 @@ class ModelTrainer(multiprocessing.Process):
 
     def train_model(self):
 
-        columns = self.training_data.columns[: len(self.training_data.columns) - 1]
+        if self.model is not None and self.training_data is not None:
+            columns = self.training_data.columns[: len(self.training_data.columns) - 1]
 
-        X_train = np.array(self.training_data[columns])
-        Y_train = np.array(self.training_data["Arousal"])
+            X_train = np.array(self.training_data[columns])
+            Y_train = np.array(self.training_data["Arousal"])
 
-        x_sample = self.new_data[0]
-        y_sample = self.new_data[1]
+            x_sample = self.new_data[0]
+            y_sample = self.new_data[1]
 
-        # Add the current sample to the training data
-        X_train = np.vstack((X_train, x_sample))  # Add new sample to training features
-        Y_train = np.hstack((Y_train, y_sample))
+            # Add the current sample to the training data
+            X_train = np.vstack(
+                (X_train, x_sample)
+            )  # Add new sample to training features
+            Y_train = np.hstack((Y_train, y_sample))
 
-        print("Training Model on new data.")
-        # Retrain the model depending on whether it supports incremental learning
-        for name, estimator in self.model.named_estimators_.items():
-            if self.is_incremental_model(estimator):
-                # Use partial_fit for incremental learning models
-                estimator.partial_fit(x_sample, y_sample, classes=self.model.classes_)
-            else:
-                # Re-train from scratch for non-incremental learning models
-                estimator.fit(X_train, Y_train)
-        print("Model Retrained Successfully!")
+            print("Training Model on new data.")
+            # Retrain the model depending on whether it supports incremental learning
+            for name, estimator in self.model.named_estimators_.items():
+                if self.is_incremental_model(estimator):
+                    # Use partial_fit for incremental learning models
+                    estimator.partial_fit(
+                        x_sample, y_sample, classes=self.model.classes_
+                    )
+                else:
+                    # Re-train from scratch for non-incremental learning models
+                    estimator.fit(X_train, Y_train)
+            print("Model Retrained Successfully!")
 
     def start_training(self):
         """Start the training process."""
@@ -66,13 +71,12 @@ class ModelTrainer(multiprocessing.Process):
         """Receive model and training data from the Manager."""
         if self.running:
             with self.lock:
-                if self.model is not None and self.training_data is not None:
+                if self.model is None and self.training_data is None:
                     print("Getting Initial Model and Training from Manager.")
                     self.model, self.training_data = self.model_queue.get()
                 else:
                     self.new_data = self.model_queue.get()
-                print(f"Model = {self.model}")
-                print(f"New Data = {self.new_data}")
+
         else:
             print("Training process is not running. Start the process first.")
 
@@ -89,5 +93,5 @@ class ModelTrainer(multiprocessing.Process):
         while bool(self.startAcquisition.value):
             if self.model_queue.qsize() > 0:
                 self.receive_data()
-                self.train_model()
-                self.send_model_retrained()
+                # self.train_model()
+                # self.send_model_retrained()
