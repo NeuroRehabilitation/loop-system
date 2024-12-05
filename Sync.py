@@ -220,7 +220,7 @@ class Sync(multiprocessing.Process):
                         for i in buffer_len
                     ):
                         self.data_train_queue.put(self.data_to_train)
-                        print("Putting Data in Queue.")
+                        print("Putting Training data in Manager Queue.")
                         self.clearDict(stream_name)
                         print("Clearing Data.")
                     # If it is not the first buffer (buffers are with max size)
@@ -266,9 +266,9 @@ class Sync(multiprocessing.Process):
         start_time = time.time()
         # Loop to receive the data - start acquisition is true
         while bool(self.startAcquisition.value):
-            if self.isFirstBuffer:
-                elapsed = time.time() - start_time
-                print(f"Elapsed Time = {elapsed:.2f} seconds.")
+            # if self.isFirstBuffer:
+            #     elapsed = time.time() - start_time
+            # print(f"Elapsed Time = {elapsed:.2f} seconds.")
             # Synchronize the data
             if not self.isSync:
                 if streams_receiver.data_queue.qsize() > 0:

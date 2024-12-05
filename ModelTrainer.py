@@ -8,7 +8,7 @@ warnings.filterwarnings("ignore")
 
 class ModelTrainer(multiprocessing.Process):
     def __init__(self):
-
+        super().__init__()
         # Queue for communication with Manager
         self.model_queue = multiprocessing.Queue()
         # Flag to check if the process is running
@@ -22,16 +22,14 @@ class ModelTrainer(multiprocessing.Process):
         # Lock to access queue
         self.lock = multiprocessing.Lock()
 
-    def run(self):
-        self.start()
-        self.receive_data()
+        self.startAcquisition = multiprocessing.Value("i", 0)
 
     @staticmethod
     def is_incremental_model(model):
         """Check if the model supports incremental learning (i.e., has `partial_fit` method)."""
         return hasattr(model, "partial_fit")
 
-    def _train_model(self):
+    def train_model(self):
 
         columns = self.training_data.columns[: len(self.training_data.columns) - 1]
 
@@ -56,23 +54,25 @@ class ModelTrainer(multiprocessing.Process):
                 estimator.fit(X_train, Y_train)
         print("Model Retrained Successfully!")
 
-    def start(self):
+    def start_training(self):
         """Start the training process."""
         if not self.running:
             self.running = True
-            print("Training process started.")
+            print("Model Trainer process started.")
         else:
-            print("Training process is already running.")
+            print("Model Trainer process is already running.")
 
     def receive_data(self):
         """Receive model and training data from the Manager."""
         if self.running:
-            if self.model_queue.qsize() > 0:
-                with self.lock:
-                    print("Getting model from Queue.")
-                    self.model, self.training_data, self.new_data = (
-                        self.model_queue.get()
-                    )
+            with self.lock:
+                if self.model is not None and self.training_data is not None:
+                    print("Getting Initial Model and Training from Manager.")
+                    self.model, self.training_data = self.model_queue.get()
+                else:
+                    self.new_data = self.model_queue.get()
+                print(f"Model = {self.model}")
+                print(f"New Data = {self.new_data}")
         else:
             print("Training process is not running. Start the process first.")
 
@@ -80,18 +80,14 @@ class ModelTrainer(multiprocessing.Process):
         if self.running:
             with self.lock:
                 self.model_queue.put(self.model)
-                print("Putting retrained model in Queue.")
+                print("Putting retrained model in Manager Queue.")
         else:
             print("Training process is not running. Start the process first.")
 
-    def stop(self):
-        """Stop the training process."""
-        if self.running:
-            self.queue.put(None)  # Send termination signal
-            self.process.join()  # Wait for the process to terminate
-            self.process = None
-            self.queue = None
-            self.running = False
-            print("Training process stopped.")
-        else:
-            print("Training process is not running.")
+    def run(self):
+        self.start_training()
+        while bool(self.startAcquisition.value):
+            if self.model_queue.qsize() > 0:
+                self.receive_data()
+                self.train_model()
+                self.send_model_retrained()

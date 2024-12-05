@@ -78,6 +78,7 @@ class Manager(multiprocessing.Process):
         sync.start()
         modelTrainer.start()
         sync.startAcquisition.value = 1
+        modelTrainer.startAcquisition.value = 1
         sync.sendBuffer.value = 1
 
         print("Acquisition Started!")
@@ -103,10 +104,12 @@ class Manager(multiprocessing.Process):
                 delta_time=5,
             )
             data_sender.start()
+            with modelTrainer.lock:
+                print("Sending Initial Model and Training to Model Trainer.")
+                modelTrainer.model_queue.put((self.model, self.training_df))
 
             # While it is acquiring data
             while bool(sync.startAcquisition.value):
-
                 if sync.markers_queue.qsize() > 0:
                     video, marker = sync.markers_queue.get()
                     print("Video = " + str(video))
@@ -114,17 +117,19 @@ class Manager(multiprocessing.Process):
                         sync.startAcquisition.value = 0
 
                 if sync.data_train_queue.qsize() > 0:
-                    print("Getting data to train from Queue.")
+                    print("Getting Training Data from Sync Queue.")
                     data_to_train = sync.data_train_queue.get()
-                    new_sample = process.getOpenSignals(data_to_train, process.info)
+                    try:
+                        new_sample = process.getOpenSignals(data_to_train, process.info)
+                        new_sample_label = self.model.predict(np.array(new_sample))[0]
+                        print(type(new_sample))
+                    except Exception as e:
+                        new_sample = None
+                        print(f"Error loading model: {e}.")
                     print(new_sample)
-                    new_sample_label = self.model.predict(np.array(new_sample))[0]
-                    print(new_sample_label)
                     with modelTrainer.lock:
-                        print("Sending data to Model Trainer.")
-                        modelTrainer.model_queue.put(
-                            (self.model, self.training_df, new_sample)
-                        )
+                        modelTrainer.model_queue.put(new_sample)
+                        print("Sending new data to Model Trainer Queue.")
 
                 # If there is data in the buffer queue from Sync, send to Process.
                 if sync.buffer_queue.qsize() > 0:
@@ -160,6 +165,8 @@ class Manager(multiprocessing.Process):
             print("File Closed")
             sync.terminate()
             sync.join()
+            modelTrainer.terminate()
+            modelTrainer.join()
             data_sender.terminate()
             data_sender.join()
 
