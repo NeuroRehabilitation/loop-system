@@ -116,18 +116,28 @@ class Manager(multiprocessing.Process):
                     if video == "end":
                         sync.startAcquisition.value = 0
 
-                if sync.data_train_queue.qsize() > 0:
-                    with sync.train_lock:
-                        data_to_train = sync.data_train_queue.get()
-                        print("Getting Training Data from Sync Queue.")
-                        # print(data_to_train)
+                train_data_available = sync.data_available_event.wait(timeout=1)
 
-                    new_sample = process.getOpenSignals(data_to_train, process.info)
-                    new_sample_label = self.model.predict(np.array(new_sample))[0]
-                    print(new_sample)
-                    with modelTrainer.lock:
-                        modelTrainer.model_queue.put(new_sample)
-                        print("Sending new data to Model Trainer Queue.")
+                if train_data_available:
+                    with sync.train_lock:
+                        if sync.data_train_queue.qsize() > 0:
+                            # print("Manager has lock.")
+                            data_to_train = sync.data_train_queue.get()
+                            # print(data_to_train)
+                            # print("Getting Training Data from Sync Queue.")
+
+                            new_sample = process.getOpenSignals(
+                                data_to_train, process.info
+                            )
+                            new_sample_label = self.model.predict(np.array(new_sample))[
+                                0
+                            ]
+                            new_sample["Arousal"] = new_sample_label
+                            print(new_sample)
+                            with modelTrainer.lock:
+                                modelTrainer.model_queue.put(new_sample)
+                            # print("Sending new data to Model Trainer Queue.")
+                            sync.data_available_event.clear()
 
                 # If there is data in the buffer queue from Sync, send to Process.
                 if sync.buffer_queue.qsize() > 0:
@@ -147,9 +157,9 @@ class Manager(multiprocessing.Process):
                                 predicted_sample, probability = process.predict(
                                     self.model
                                 )
-                                print(
-                                    f"Prediction = {predicted_sample[0]}, Probability = {probability}."
-                                )
+                                # print(
+                                #     f"Prediction = {predicted_sample[0]}, Probability = {probability}."
+                                # )
 
                         sync.sendBuffer.value = 1
                         previous_df = features

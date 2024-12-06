@@ -57,6 +57,10 @@ class Sync(multiprocessing.Process):
         # Locks of the system
         self.lock, self.train_lock = multiprocessing.Lock(), multiprocessing.Lock()
 
+        self.data_available_event = (
+            multiprocessing.Event()
+        )  # Event to notify when data is available
+
         # Number of full buffers from all the streams
         self.n_full_buffers = 0
 
@@ -108,7 +112,6 @@ class Sync(multiprocessing.Process):
 
     def clearDict(self, stream_name: str):
         if self.data_train_queue.qsize() > 0:
-            print(self.data_to_train)
             print("Clearing Data.")
             for key in self.data_to_train[stream_name].keys():
                 self.data_to_train[stream_name][key].clear()
@@ -223,11 +226,11 @@ class Sync(multiprocessing.Process):
                         for i in buffer_len
                     ):
                         with self.train_lock:
-                            # print(self.data_to_train)
                             self.data_train_queue.put(self.data_to_train)
-                            print("Putting Training data in Manager Queue.")
+                            # print("Putting Training data in Manager Queue.")
+                            self.clearDict(stream_name)
+                            self.data_available_event.set()
 
-                        self.clearDict(stream_name)
                     # If it is not the first buffer (buffers are with max size)
                     # Start sliding window and put buffers on the Queue to send to process
                     self.slidingWindow(stream_name)
