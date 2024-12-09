@@ -1,3 +1,4 @@
+import copy
 import multiprocessing
 import os
 import sys
@@ -226,7 +227,9 @@ class Sync(multiprocessing.Process):
                         for i in buffer_len
                     ):
                         with self.train_lock:
-                            self.data_train_queue.put(self.data_to_train)
+                            # print("Sync has lock.")
+                            data = copy.deepcopy(self.data_to_train)
+                            self.data_train_queue.put(data)
                             # print("Putting Training data in Manager Queue.")
                             self.clearDict(stream_name)
                             self.data_available_event.set()

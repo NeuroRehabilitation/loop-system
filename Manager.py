@@ -116,12 +116,13 @@ class Manager(multiprocessing.Process):
                     if video == "end":
                         sync.startAcquisition.value = 0
 
-                train_data_available = sync.data_available_event.wait(timeout=1)
+                isDataAvailable = sync.data_available_event.wait(timeout=1)
+                isModelRetrained = modelTrainer.model_retrained_event.wait(timeout=1)
 
-                if train_data_available:
+                if isDataAvailable:
                     with sync.train_lock:
+                        # print("Manager has lock.")
                         if sync.data_train_queue.qsize() > 0:
-                            # print("Manager has lock.")
                             data_to_train = sync.data_train_queue.get()
                             # print(data_to_train)
                             # print("Getting Training Data from Sync Queue.")
@@ -134,10 +135,18 @@ class Manager(multiprocessing.Process):
                             ]
                             new_sample["Arousal"] = new_sample_label
                             print(new_sample)
+
                             with modelTrainer.lock:
                                 modelTrainer.model_queue.put(new_sample)
-                            # print("Sending new data to Model Trainer Queue.")
+                                modelTrainer.sample_available_event.set()
+                                print("Sending new data to Model Trainer Queue.")
+
                             sync.data_available_event.clear()
+                if isModelRetrained:
+                    if modelTrainer.model_queue.qsize() > 0:
+                        with modelTrainer.lock:
+                            self.model = modelTrainer.model_queue.get()
+                            print("Getting retrained model in from ModelTrainer Queue.")
 
                 # If there is data in the buffer queue from Sync, send to Process.
                 if sync.buffer_queue.qsize() > 0:

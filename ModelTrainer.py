@@ -25,6 +25,12 @@ class ModelTrainer(multiprocessing.Process):
         # Flag to start the acquisition of data by the Manager.
         self.startAcquisition = multiprocessing.Value("i", 0)
 
+        (
+            self.model_available_event,
+            self.sample_available_event,
+            self.model_retrained_event,
+        ) = (multiprocessing.Event(), multiprocessing.Event(), multiprocessing.Event())
+
         self.X_train, self.Y_train = None, None
         self.columns = None
 
@@ -61,6 +67,7 @@ class ModelTrainer(multiprocessing.Process):
                 f"Model Retrained Successfully in {(time.time()-start_time):.2f} seconds!"
             )
             self.isTraining = False
+            self.model_retrained_event.set()
 
     def start_training(self):
         """Start the training process."""
@@ -92,20 +99,29 @@ class ModelTrainer(multiprocessing.Process):
     def send_model_retrained(self):
         if self.running:
             with self.lock:
+                print("Send model retrained has lock.")
                 self.model_queue.put(self.model)
-                print("Putting retrained model in Manager Queue.")
+                print("Putting retrained model in Model Trainer Queue.")
         else:
             print("Training process is not running. Start the process first.")
 
     def run(self):
+
         self.start_training()
+
         while bool(self.startAcquisition.value):
-            if self.model_queue.qsize() > 0:
-                if self.model is None and self.training_data is None:
+
+            isSampleAvailable = self.sample_available_event.wait(timeout=1)
+            isModelRetrained = self.model_retrained_event.wait(timeout=1)
+
+            if self.model is None and self.training_data is None:
+                if self.model_queue.qsize() > 0:
                     self.receive_data()
-                    print(f"Len X_Train = {len(self.X_train)}")
-                else:
+
+            if isSampleAvailable:
+                if self.model_queue.qsize() > 0:
                     self.receive_data()
                     self.train_model()
 
-                # self.send_model_retrained()
+            if isModelRetrained:
+                self.send_model_retrained()
