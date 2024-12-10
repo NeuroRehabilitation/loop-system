@@ -25,7 +25,7 @@ class Manager(multiprocessing.Process):
     def run(self):
         """ """
         # Instantiate object from class Sync and Processing
-        sync = Sync(buffer_window=60)
+        sync = Sync(buffer_window=30)
         process = Processing()
         modelTrainer = ModelTrainer()
 
@@ -98,13 +98,13 @@ class Manager(multiprocessing.Process):
         try:
             data_sender = DataSender(
                 stream_name="biosignalsplux",
-                stream_type="Breathing Rate",
-                channel_count=1,
+                stream_type="stress",
+                channel_count=2,
                 sampling_rate=IRREGULAR_RATE,
-                channel_format=cf_float32,
+                channel_format=cf_string,
                 source_id="id1",
                 data_queue=self.data_queue,
-                delta_time=5,
+                delta_time=1,
             )
             data_sender.start()
             with modelTrainer.lock:
@@ -166,6 +166,9 @@ class Manager(multiprocessing.Process):
                                 with self.model_lock:
                                     predicted_sample, probability = process.predict(
                                         self.model
+                                    )
+                                    self.data_queue.put(
+                                        [predicted_sample[0], str(probability)]
                                     )
                                     print(
                                         f"Prediction = {predicted_sample[0]}, Probability = {probability}, Model v{self.model_version}."
