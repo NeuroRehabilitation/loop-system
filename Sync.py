@@ -1,13 +1,6 @@
-import copy
-import json
-import multiprocessing
-import os
-import sys
 import time
 from collections import deque
-from io import StringIO
 
-import numpy as np
 
 from ReceiveStreams import *
 
@@ -226,21 +219,16 @@ class Sync(multiprocessing.Process):
                         i >= self.information[stream_name]["Max Size"]
                         for i in buffer_len
                     ):
-                        # print(f"Is Queue empty = {self.data_train_queue.empty()}")
-                        if (
-                            self.data_train_queue.empty()
-                            and self.data_available_event.wait(0.1)
-                        ):
-                            self.clearDict(stream_name)
-                        elif (
-                            self.data_train_queue.empty()
-                            and not self.data_available_event.wait(0.1)
-                        ):
-                            with self.train_lock:
-                                # print("Sync has lock.")
-                                self.data_train_queue.put(self.data_to_train)
-                                print("Putting Training data in Manager Queue.")
-                            self.data_available_event.set()
+                        if self.data_train_queue.empty():
+                            if self.data_available_event.wait(0.1):
+                                with self.train_lock:
+                                    self.clearDict(stream_name)
+                            else:
+                                with self.train_lock:
+                                    # print("Sync has lock.")
+                                    self.data_train_queue.put(self.data_to_train)
+                                    print("Putting Training data in Manager Queue.")
+                                    self.data_available_event.set()
 
                     # If it is not the first buffer (buffers are with max size)
                     # Start sliding window and put buffers on the Queue to send to process

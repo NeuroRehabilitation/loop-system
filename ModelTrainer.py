@@ -11,7 +11,10 @@ class ModelTrainer(multiprocessing.Process):
     def __init__(self):
         super().__init__()
         # Queue for communication with Manager
-        self.model_queue = multiprocessing.Queue()
+        self.model_queue, self.new_sample_queue = (
+            multiprocessing.Queue(),
+            multiprocessing.Queue(),
+        )
         # Flag to check if the process is running
         self.running, self.isTraining = False, False
         # Training Data
@@ -40,8 +43,8 @@ class ModelTrainer(multiprocessing.Process):
         return hasattr(model, "partial_fit")
 
     def train_model(self):
-
         start_time = time.time()
+
         x_sample = np.array(self.new_data[self.columns])
         y_sample = np.array(self.new_data["Arousal"])
 
@@ -67,8 +70,8 @@ class ModelTrainer(multiprocessing.Process):
             print(
                 f"Model Retrained Successfully in {(time.time()-start_time):.2f} seconds!"
             )
-            self.isTraining = False
             self.model_retrained_event.set()
+            self.isTraining = False
 
     def start_training(self):
         """Start the training process."""
@@ -79,20 +82,21 @@ class ModelTrainer(multiprocessing.Process):
             print("Model Trainer process is already running.")
 
     def receive_data(self):
+        if self.running:
+            with self.lock:
+                self.new_data = self.new_sample_queue.get()
+
+    def receive_first_model(self):
         """Receive model and training data from the Manager."""
         if self.running:
             with self.lock:
-                if self.model is None and self.training_data is None:
-                    print("Getting Initial Model and Training from Manager.")
-                    self.model, self.training_data = self.model_queue.get()
-                    self.columns = self.training_data.columns[
-                        : len(self.training_data.columns) - 1
-                    ]
-                    self.X_train = np.array(self.training_data[self.columns])
-                    self.Y_train = np.array(self.training_data["Arousal"])
-                else:
-                    self.new_data = self.model_queue.get()
-                    print("Getting new sample to train.")
+                print("Getting Initial Model and Training Dataframe from Manager.")
+                self.model, self.training_data = self.model_queue.get()
+                self.columns = self.training_data.columns[
+                    : len(self.training_data.columns) - 1
+                ]
+                self.X_train = np.array(self.training_data[self.columns])
+                self.Y_train = np.array(self.training_data["Arousal"])
 
         else:
             print("Training process is not running. Start the process first.")
@@ -100,8 +104,9 @@ class ModelTrainer(multiprocessing.Process):
     def send_model_retrained(self):
         if self.running:
             with self.lock:
-                self.model_queue.put(self.model)
-                print("Putting retrained model in Model Trainer Queue.")
+                if self.model_queue.empty():
+                    self.model_queue.put(self.model)
+                    # print("Putting retrained model in Model Trainer Queue.")
         else:
             print("Training process is not running. Start the process first.")
 
@@ -112,16 +117,13 @@ class ModelTrainer(multiprocessing.Process):
         while bool(self.startAcquisition.value):
 
             isSampleAvailable = self.sample_available_event.wait(timeout=1)
-            isModelRetrained = self.model_retrained_event.wait(timeout=1)
 
             if self.model is None and self.training_data is None:
                 if self.model_queue.qsize() > 0:
-                    self.receive_data()
-
-            if isSampleAvailable:
-                if self.model_queue.qsize() > 0:
-                    self.receive_data()
-                    self.train_model()
-
-            if isModelRetrained:
-                self.send_model_retrained()
+                    self.receive_first_model()
+            else:
+                if isSampleAvailable:
+                    if self.new_sample_queue.qsize() > 0:
+                        self.receive_data()
+                        self.train_model()
+                        self.send_model_retrained()

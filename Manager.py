@@ -1,4 +1,5 @@
 import csv
+import multiprocessing
 import os.path
 import sys
 import time
@@ -18,11 +19,13 @@ class Manager(multiprocessing.Process):
         self.training_df = None
         self.baseline = None
         self.model = None
+        self.model_version = 1
+        self.model_lock = multiprocessing.Lock()
 
     def run(self):
         """ """
         # Instantiate object from class Sync and Processing
-        sync = Sync(buffer_window=30)
+        sync = Sync(buffer_window=60)
         process = Processing()
         modelTrainer = ModelTrainer()
 
@@ -105,7 +108,7 @@ class Manager(multiprocessing.Process):
             )
             data_sender.start()
             with modelTrainer.lock:
-                print("Sending Initial Model and Training to Model Trainer.")
+                print("Sending Initial Model and Training Dataframe to Model Trainer.")
                 modelTrainer.model_queue.put((self.model, self.training_df))
 
             # While it is acquiring data
@@ -114,33 +117,37 @@ class Manager(multiprocessing.Process):
                 isModelRetrained = modelTrainer.model_retrained_event.wait(timeout=0.1)
 
                 if isDataAvailable:
-                    with sync.train_lock:
-                        # print("Manager has lock.")
-                        if sync.data_train_queue.qsize() > 0:
+                    if sync.data_train_queue.qsize() > 0:
+                        with sync.train_lock:
                             data_to_train = sync.data_train_queue.get()
 
-                            # print("Getting Training Data from Sync Queue.")
+                            # print(data_to_train)
+                            print("Getting Training Data from Sync Queue.")
                             new_sample = process.getOpenSignals(
                                 data_to_train, process.info
                             )
                             new_sample_label = self.model.predict(np.array(new_sample))[
                                 0
                             ]
-                            new_sample["Arousal"] = new_sample_label
+                            # new_sample["Arousal"] = new_sample_label
+                            new_sample["Arousal"] = "Low"
                             print(new_sample)
 
-                            with modelTrainer.lock:
-                                modelTrainer.model_queue.put(new_sample)
-                                modelTrainer.sample_available_event.set()
-                                print("Sending new data to Model Trainer Queue.")
+                            sync.data_available_event.clear()
 
-                        sync.data_available_event.clear()
+                            with modelTrainer.lock:
+                                modelTrainer.new_sample_queue.put(new_sample)
+                                modelTrainer.sample_available_event.set()
+                                # print("Sending new data to Model Trainer Queue.")
 
                 if isModelRetrained:
-                    if modelTrainer.model_queue.qsize() > 0:
-                        self.model = modelTrainer.model_queue.get()
-                        print("Getting retrained model from ModelTrainer Queue.")
-                        modelTrainer.model_retrained_event.clear()
+                    with self.model_lock:
+                        if not modelTrainer.model_queue.empty():
+                            self.model = modelTrainer.model_queue.get()
+                            self.model_version += 1
+                            # print(self.model)
+                            print("Updating retrained model.")
+                            modelTrainer.model_retrained_event.clear()
 
                 # If there is data in the buffer queue from Sync, send to Process.
                 if sync.buffer_queue.qsize() > 0:
@@ -156,12 +163,13 @@ class Manager(multiprocessing.Process):
                             if not np.allclose(
                                 features.values, previous_df.values, atol=1e-3
                             ):
-                                predicted_sample, probability = process.predict(
-                                    self.model
-                                )
-                                # print(
-                                #     f"Prediction = {predicted_sample[0]}, Probability = {probability}."
-                                # )
+                                with self.model_lock:
+                                    predicted_sample, probability = process.predict(
+                                        self.model
+                                    )
+                                    print(
+                                        f"Prediction = {predicted_sample[0]}, Probability = {probability}, Model v{self.model_version}."
+                                    )
 
                         sync.sendBuffer.value = 1
                         previous_df = features
