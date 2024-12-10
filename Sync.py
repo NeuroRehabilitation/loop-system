@@ -1,4 +1,5 @@
 import copy
+import json
 import multiprocessing
 import os
 import sys
@@ -112,7 +113,7 @@ class Sync(multiprocessing.Process):
         return dict
 
     def clearDict(self, stream_name: str):
-        if self.data_train_queue.qsize() > 0:
+        if self.data_train_queue.empty():
             print("Clearing Data.")
             for key in self.data_to_train[stream_name].keys():
                 self.data_to_train[stream_name][key].clear()
@@ -132,7 +133,6 @@ class Sync(multiprocessing.Process):
         :param stream_name: name of the stream
         :type stream_name: str
         """
-
         self.synced_dict[stream_name]["Timestamps"].append(data[1])
 
         for i, key in enumerate(self.synced_dict[stream_name].keys()):
@@ -212,12 +212,12 @@ class Sync(multiprocessing.Process):
                     self.information[stream_name]["Max Size"],
                     stream_name,
                 )
-                self.fill_TrainingData(data, stream_name)
 
                 # In case it is the first buffer of data
                 if not self.information[stream_name]["Full Buffer"]:
                     # Fills the first buffer of data with data
                     self.fillData(data, stream_name)
+                    self.fill_TrainingData(data, stream_name)
                 else:
                     buffer_len = [
                         len(value) for value in self.data_to_train[stream_name].values()
@@ -226,18 +226,27 @@ class Sync(multiprocessing.Process):
                         i >= self.information[stream_name]["Max Size"]
                         for i in buffer_len
                     ):
-                        with self.train_lock:
-                            # print("Sync has lock.")
-                            data = copy.deepcopy(self.data_to_train)
-                            self.data_train_queue.put(data)
-                            # print("Putting Training data in Manager Queue.")
+                        # print(f"Is Queue empty = {self.data_train_queue.empty()}")
+                        if (
+                            self.data_train_queue.empty()
+                            and self.data_available_event.wait(0.1)
+                        ):
                             self.clearDict(stream_name)
+                        elif (
+                            self.data_train_queue.empty()
+                            and not self.data_available_event.wait(0.1)
+                        ):
+                            with self.train_lock:
+                                # print("Sync has lock.")
+                                self.data_train_queue.put(self.data_to_train)
+                                print("Putting Training data in Manager Queue.")
                             self.data_available_event.set()
 
                     # If it is not the first buffer (buffers are with max size)
                     # Start sliding window and put buffers on the Queue to send to process
                     self.slidingWindow(stream_name)
                     self.fillData(data, stream_name)
+                    self.fill_TrainingData(data, stream_name)
 
     def getPsychoPyData(self, data: tuple, stream_name: str) -> None:
         """
@@ -277,9 +286,9 @@ class Sync(multiprocessing.Process):
         start_time = time.time()
         # Loop to receive the data - start acquisition is true
         while bool(self.startAcquisition.value):
-            # if self.isFirstBuffer:
-            #     elapsed = time.time() - start_time
-            #     print(f"Elapsed Time = {elapsed:.2f} seconds.")
+            if self.isFirstBuffer:
+                elapsed = time.time() - start_time
+                print(f"Elapsed Time = {elapsed:.2f} seconds.")
             # Synchronize the data
             if not self.isSync:
                 if streams_receiver.data_queue.qsize() > 0:

@@ -40,6 +40,7 @@ class ModelTrainer(multiprocessing.Process):
         return hasattr(model, "partial_fit")
 
     def train_model(self):
+
         start_time = time.time()
         x_sample = np.array(self.new_data[self.columns])
         y_sample = np.array(self.new_data["Arousal"])
@@ -99,7 +100,6 @@ class ModelTrainer(multiprocessing.Process):
     def send_model_retrained(self):
         if self.running:
             with self.lock:
-                print("Send model retrained has lock.")
                 self.model_queue.put(self.model)
                 print("Putting retrained model in Model Trainer Queue.")
         else:

@@ -22,7 +22,7 @@ class Manager(multiprocessing.Process):
     def run(self):
         """ """
         # Instantiate object from class Sync and Processing
-        sync = Sync(buffer_window=60)
+        sync = Sync(buffer_window=30)
         process = Processing()
         modelTrainer = ModelTrainer()
 
@@ -110,23 +110,16 @@ class Manager(multiprocessing.Process):
 
             # While it is acquiring data
             while bool(sync.startAcquisition.value):
-                if sync.markers_queue.qsize() > 0:
-                    video, marker = sync.markers_queue.get()
-                    print("Video = " + str(video))
-                    if video == "end":
-                        sync.startAcquisition.value = 0
-
-                isDataAvailable = sync.data_available_event.wait(timeout=1)
-                isModelRetrained = modelTrainer.model_retrained_event.wait(timeout=1)
+                isDataAvailable = sync.data_available_event.wait(timeout=0.1)
+                isModelRetrained = modelTrainer.model_retrained_event.wait(timeout=0.1)
 
                 if isDataAvailable:
                     with sync.train_lock:
                         # print("Manager has lock.")
                         if sync.data_train_queue.qsize() > 0:
                             data_to_train = sync.data_train_queue.get()
-                            # print(data_to_train)
-                            # print("Getting Training Data from Sync Queue.")
 
+                            # print("Getting Training Data from Sync Queue.")
                             new_sample = process.getOpenSignals(
                                 data_to_train, process.info
                             )
@@ -141,12 +134,13 @@ class Manager(multiprocessing.Process):
                                 modelTrainer.sample_available_event.set()
                                 print("Sending new data to Model Trainer Queue.")
 
-                            sync.data_available_event.clear()
+                        sync.data_available_event.clear()
+
                 if isModelRetrained:
                     if modelTrainer.model_queue.qsize() > 0:
-                        with modelTrainer.lock:
-                            self.model = modelTrainer.model_queue.get()
-                            print("Getting retrained model in from ModelTrainer Queue.")
+                        self.model = modelTrainer.model_queue.get()
+                        print("Getting retrained model from ModelTrainer Queue.")
+                        modelTrainer.model_retrained_event.clear()
 
                 # If there is data in the buffer queue from Sync, send to Process.
                 if sync.buffer_queue.qsize() > 0:
@@ -156,7 +150,6 @@ class Manager(multiprocessing.Process):
                         process.data = sync.buffer_queue.get()
                         i += 1
                         features = process.processData()
-                        # print(features)
                         process.features = features - self.baseline
                         # print(process.features)
                         if previous_df is not None and features is not None:
