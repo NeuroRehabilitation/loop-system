@@ -20,7 +20,7 @@ class Sync(multiprocessing.Process):
         (
             self.data_queue,
             self.buffer_queue,
-            self.markers_queue,
+            self.arousal_queue,
             self.data_train_queue,
             self.info_queue,
         ) = (
@@ -212,23 +212,23 @@ class Sync(multiprocessing.Process):
                     self.fillData(data, stream_name)
                     self.fill_TrainingData(data, stream_name)
                 else:
-                    buffer_len = [
-                        len(value) for value in self.data_to_train[stream_name].values()
-                    ]
-                    if all(
-                        i >= self.information[stream_name]["Max Size"]
-                        for i in buffer_len
-                    ):
-                        if self.data_train_queue.empty():
-                            if self.data_available_event.wait(0.1):
-                                with self.train_lock:
-                                    self.clearDict(stream_name)
-                            else:
-                                with self.train_lock:
-                                    # print("Sync has lock.")
-                                    self.data_train_queue.put(self.data_to_train)
-                                    print("Putting Training data in Manager Queue.")
-                                    self.data_available_event.set()
+                    # buffer_len = [
+                    #     len(value) for value in self.data_to_train[stream_name].values()
+                    # ]
+                    # if all(
+                    #     i >= self.information[stream_name]["Max Size"]
+                    #     for i in buffer_len
+                    # ):
+                    #     if self.data_train_queue.empty():
+                    #         if self.data_available_event.wait(0.1):
+                    #             with self.train_lock:
+                    #                 self.clearDict(stream_name)
+                    #         else:
+                    #             with self.train_lock:
+                    #                 # print("Sync has lock.")
+                    #                 self.data_train_queue.put(self.data_to_train)
+                    #                 print("Putting Training data in Manager Queue.")
+                    #                 self.data_available_event.set()
 
                     # If it is not the first buffer (buffers are with max size)
                     # Start sliding window and put buffers on the Queue to send to process
@@ -243,13 +243,9 @@ class Sync(multiprocessing.Process):
         :param stream_name:
         :type stream_name:
         """
-        if "Markers" in stream_name:
-            self.markers_queue.put(data[0])
-        else:
+        if "Ratings" in stream_name:
             if "Arousal" in data[0][0]:
                 self.arousal_queue.put(data[0][1])
-            else:
-                self.valence_queue.put(data[0][1])
 
     def run(self):
         """ """
@@ -290,8 +286,19 @@ class Sync(multiprocessing.Process):
                     stream_name, data = streams_receiver.data_queue.get()
                     if "PsychoPy" in stream_name:
                         self.getPsychoPyData(data, stream_name)
+                        if self.data_train_queue.empty():
+                            if not self.data_available_event.wait(0.1):
+                                with self.train_lock:
+                                    # print("Sync has lock.")
+                                    self.data_train_queue.put(self.data_to_train)
+                                    print("Putting Training data in Manager Queue.")
+                                    self.data_available_event.set()
                     else:
                         self.getBuffers(data, stream_name)
+                        if self.data_available_event.wait(0.1):
+                            if self.data_train_queue.empty():
+                                with self.train_lock:
+                                    self.clearDict(stream_name)
 
             if not self.isFirstBuffer and self.sendBuffer.value == 1:
                 with self.lock:

@@ -44,7 +44,6 @@ class ModelTrainer(multiprocessing.Process):
 
     def train_model(self):
         start_time = time.time()
-
         x_sample = np.array(self.new_data[self.columns])
         y_sample = np.array(self.new_data["Arousal"])
 

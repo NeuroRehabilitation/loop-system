@@ -25,7 +25,7 @@ class Manager(multiprocessing.Process):
     def run(self):
         """ """
         # Instantiate object from class Sync and Processing
-        sync = Sync(buffer_window=30)
+        sync = Sync(buffer_window=60)
         process = Processing()
         modelTrainer = ModelTrainer()
 
@@ -97,7 +97,7 @@ class Manager(multiprocessing.Process):
 
         try:
             data_sender = DataSender(
-                stream_name="biosignalsplux",
+                stream_name="loopsystem",
                 stream_type="stress",
                 channel_count=2,
                 sampling_rate=IRREGULAR_RATE,
@@ -117,7 +117,10 @@ class Manager(multiprocessing.Process):
                 isModelRetrained = modelTrainer.model_retrained_event.wait(timeout=0.1)
 
                 if isDataAvailable:
-                    if sync.data_train_queue.qsize() > 0:
+                    if (
+                        sync.data_train_queue.qsize() > 0
+                        and sync.arousal_queue.qsize() > 0
+                    ):
                         with sync.train_lock:
                             data_to_train = sync.data_train_queue.get()
 
@@ -126,19 +129,25 @@ class Manager(multiprocessing.Process):
                             new_sample = process.getOpenSignals(
                                 data_to_train, process.info
                             )
-                            new_sample_label = self.model.predict(np.array(new_sample))[
-                                0
-                            ]
-                            # new_sample["Arousal"] = new_sample_label
-                            new_sample["Arousal"] = "Low"
+
+                            arousal = int(sync.arousal_queue.get())
+
+                            if arousal <= 3:
+                                label = "Low"
+                            elif arousal >= 7:
+                                label = "High"
+                            else:
+                                label = "Medium"
+
+                            new_sample["Arousal"] = label
                             print(new_sample)
 
                             sync.data_available_event.clear()
 
-                            with modelTrainer.lock:
-                                modelTrainer.new_sample_queue.put(new_sample)
-                                modelTrainer.sample_available_event.set()
-                                # print("Sending new data to Model Trainer Queue.")
+                        with modelTrainer.lock:
+                            modelTrainer.new_sample_queue.put(new_sample)
+                            modelTrainer.sample_available_event.set()
+                            # print("Sending new data to Model Trainer Queue.")
 
                 if isModelRetrained:
                     with self.model_lock:
@@ -178,18 +187,19 @@ class Manager(multiprocessing.Process):
                         previous_df = features
 
         except Exception as e:
-            print(e)
-        finally:
-            # for i in range(len(br)):
-            #     writer.writerow([markers[i], br[i]])
-            f.close()
-            print("File Closed")
-            sync.terminate()
-            sync.join()
-            modelTrainer.terminate()
-            modelTrainer.join()
-            data_sender.terminate()
-            data_sender.join()
+            print(f"ola {e}")
+            pass
+        # finally:
+        #     # for i in range(len(br)):
+        #     #     writer.writerow([markers[i], br[i]])
+        #     f.close()
+        #     print("File Closed")
+        #     sync.terminate()
+        #     sync.join()
+        #     modelTrainer.terminate()
+        #     modelTrainer.join()
+        #     data_sender.terminate()
+        #     data_sender.join()
 
 
 if __name__ == "__main__":
