@@ -106,7 +106,7 @@ class Sync(multiprocessing.Process):
         return dict
 
     def clearDict(self, stream_name: str):
-        print("Clearing Data.")
+        # print("Clearing Data.")
         for key in self.data_to_train[stream_name].keys():
             self.data_to_train[stream_name][key].clear()
 
@@ -227,7 +227,7 @@ class Sync(multiprocessing.Process):
         if "Ratings" in stream_name:
             if "Arousal" in data[0][0]:
                 self.arousal_queue.put(data[0][1])
-                print(f"Arousal = {data[0][1]}")
+                # print(f"Arousal = {data[0][1]}")
 
     def run(self):
         """ """
@@ -296,7 +296,7 @@ class Sync(multiprocessing.Process):
                         if bool(self.clear_data.value):
                             self.clearDict(stream_name)
                             self.clear_data.value = 0
-                            print(self.data_to_train)
+                            # print(self.data_to_train)
 
             if not self.isFirstBuffer and self.sendBuffer.value == 1:
                 with self.lock:

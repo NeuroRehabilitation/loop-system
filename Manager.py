@@ -119,34 +119,41 @@ class Manager(multiprocessing.Process):
                 if isDataAvailable:
                     with sync.train_lock:
                         data_to_train = sync.data_train_queue.get()
-                        print(
-                            f'Len =  {len(data_to_train["OpenSignals"]["Timestamps"])}'
-                        )
+                        # print(
+                        #     f'Len =  {len(data_to_train["OpenSignals"]["Timestamps"])}'
+                        # )
 
                         # print(data_to_train)
                         print("Getting Training Data from Sync Queue.")
 
                         new_sample = process.getOpenSignals(data_to_train, process.info)
 
+                        X = np.array(new_sample)
+                        predicted_label = self.model.predict(X)[0]
+                        print(f"Predicted Label = {predicted_label}")
+
                         arousal = int(sync.arousal_queue.get())
 
                         if arousal <= 3:
-                            label = "Low"
+                            true_label = "Low"
                         elif arousal >= 7:
-                            label = "High"
+                            true_label = "High"
                         else:
-                            label = "Medium"
+                            true_label = "Medium"
 
-                        new_sample["Arousal"] = label
-                        print(new_sample)
+                        new_sample["Arousal"] = true_label
+                        # print(new_sample)
 
                         sync.data_available_event.clear()
                         sync.clear_data.value = 1
-
-                        with modelTrainer.lock:
-                            modelTrainer.new_sample_queue.put(new_sample)
-                            modelTrainer.sample_available_event.set()
-                            print("Sending new data to Model Trainer Queue.")
+                        if true_label != predicted_label:
+                            with modelTrainer.lock:
+                                modelTrainer.new_sample_queue.put(new_sample)
+                                modelTrainer.sample_available_event.set()
+                                print("Sending new data to Model Trainer Queue.")
+                        else:
+                            print("No need to retrain model!")
+                            continue
 
                 if isModelRetrained:
                     with self.model_lock:
