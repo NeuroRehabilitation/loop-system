@@ -127,10 +127,11 @@ class Manager(multiprocessing.Process):
                         print("Getting Training Data from Sync Queue.")
 
                         new_sample = process.getOpenSignals(data_to_train, process.info)
+                        new_sample -= self.baseline
 
                         X = np.array(new_sample)
                         predicted_label = self.model.predict(X)[0]
-                        print(f"Predicted Label = {predicted_label}")
+                        # print(f"Predicted Label = {predicted_label}")
 
                         arousal = int(sync.arousal_queue.get())
 
