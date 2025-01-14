@@ -278,10 +278,9 @@ class Sync(multiprocessing.Process):
                             self.data_available_event.set()
                     else:
                         self.getBuffers(data, stream_name)
-
-                        # if bool(self.clear_data.value):
-                        #     self.clear_data(stream_name)
-                        #     self.clear_data.value = 0
+                        if bool(self.clear_data.value):
+                            self.clearDict(stream_name)
+                            self.clear_data.value = 0
 
             if not self.isFirstBuffer and self.sendBuffer.value == 1:
                 with self.lock:
