@@ -1,3 +1,4 @@
+import multiprocessing
 import time
 from collections import deque
 
@@ -48,13 +49,12 @@ class Sync(multiprocessing.Process):
         # Flag to start the acquisition of data by the Manager.
         self.startAcquisition = multiprocessing.Value("i", 0)
         self.sendBuffer = multiprocessing.Value("i", 0)
+        self.clear_data = multiprocessing.Value("i", 0)
 
         # Locks of the system
         self.lock, self.train_lock = multiprocessing.Lock(), multiprocessing.Lock()
 
-        self.data_available_event = (
-            multiprocessing.Event()
-        )  # Event to notify when data is available
+        self.data_available_event = multiprocessing.Event()
 
         # Number of full buffers from all the streams
         self.n_full_buffers = 0
@@ -106,10 +106,9 @@ class Sync(multiprocessing.Process):
         return dict
 
     def clearDict(self, stream_name: str):
-        if self.data_train_queue.empty():
-            print("Clearing Data.")
-            for key in self.data_to_train[stream_name].keys():
-                self.data_to_train[stream_name][key].clear()
+        print("Clearing Data.")
+        for key in self.data_to_train[stream_name].keys():
+            self.data_to_train[stream_name][key].clear()
 
     def fill_TrainingData(self, data: tuple, stream_name: str) -> None:
 
@@ -212,24 +211,6 @@ class Sync(multiprocessing.Process):
                     self.fillData(data, stream_name)
                     self.fill_TrainingData(data, stream_name)
                 else:
-                    # buffer_len = [
-                    #     len(value) for value in self.data_to_train[stream_name].values()
-                    # ]
-                    # if all(
-                    #     i >= self.information[stream_name]["Max Size"]
-                    #     for i in buffer_len
-                    # ):
-                    #     if self.data_train_queue.empty():
-                    #         if self.data_available_event.wait(0.1):
-                    #             with self.train_lock:
-                    #                 self.clearDict(stream_name)
-                    #         else:
-                    #             with self.train_lock:
-                    #                 # print("Sync has lock.")
-                    #                 self.data_train_queue.put(self.data_to_train)
-                    #                 print("Putting Training data in Manager Queue.")
-                    #                 self.data_available_event.set()
-
                     # If it is not the first buffer (buffers are with max size)
                     # Start sliding window and put buffers on the Queue to send to process
                     self.slidingWindow(stream_name)
@@ -246,6 +227,7 @@ class Sync(multiprocessing.Process):
         if "Ratings" in stream_name:
             if "Arousal" in data[0][0]:
                 self.arousal_queue.put(data[0][1])
+                print(f"Arousal = {data[0][1]}")
 
     def run(self):
         """ """
@@ -284,25 +266,25 @@ class Sync(multiprocessing.Process):
             if self.isSync:
                 if streams_receiver.data_queue.qsize() > 0:
                     stream_name, data = streams_receiver.data_queue.get()
-                    if "PsychoPy" in stream_name:
+
+                    if "Ratings" in stream_name:
                         self.getPsychoPyData(data, stream_name)
-                        if self.data_train_queue.empty():
-                            if not self.data_available_event.wait(0.1):
-                                with self.train_lock:
-                                    # print("Sync has lock.")
-                                    self.data_train_queue.put(self.data_to_train)
-                                    print("Putting Training data in Manager Queue.")
-                                    self.data_available_event.set()
+                        with self.train_lock:
+                            self.data_train_queue.put(self.data_to_train)
+                            print("Putting Training data in Manager Queue.")
+                            print(
+                                f"Len Training Data = {len(self.data_to_train['OpenSignals']['Timestamps'])}"
+                            )
+                            self.data_available_event.set()
                     else:
                         self.getBuffers(data, stream_name)
-                        if self.data_available_event.wait(0.1):
-                            if self.data_train_queue.empty():
-                                with self.train_lock:
-                                    self.clearDict(stream_name)
+
+                        # if bool(self.clear_data.value):
+                        #     self.clear_data(stream_name)
+                        #     self.clear_data.value = 0
 
             if not self.isFirstBuffer and self.sendBuffer.value == 1:
                 with self.lock:
-                    # print("Sync has lock.")
                     self.buffer_queue.put(self.synced_dict)
                     # print(f"Queue size = {self.buffer_queue.qsize()}")
 

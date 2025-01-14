@@ -117,37 +117,35 @@ class Manager(multiprocessing.Process):
                 isModelRetrained = modelTrainer.model_retrained_event.wait(timeout=0.1)
 
                 if isDataAvailable:
-                    if (
-                        sync.data_train_queue.qsize() > 0
-                        and sync.arousal_queue.qsize() > 0
-                    ):
-                        with sync.train_lock:
-                            data_to_train = sync.data_train_queue.get()
+                    with sync.train_lock:
+                        data_to_train = sync.data_train_queue.get()
+                        print(
+                            f'Len =  {len(data_to_train["OpenSignals"]["Timestamps"])}'
+                        )
 
-                            # print(data_to_train)
-                            print("Getting Training Data from Sync Queue.")
-                            new_sample = process.getOpenSignals(
-                                data_to_train, process.info
-                            )
+                        # print(data_to_train)
+                        print("Getting Training Data from Sync Queue.")
+                        new_sample = process.getOpenSignals(data_to_train, process.info)
 
-                            arousal = int(sync.arousal_queue.get())
+                        arousal = int(sync.arousal_queue.get())
 
-                            if arousal <= 3:
-                                label = "Low"
-                            elif arousal >= 7:
-                                label = "High"
-                            else:
-                                label = "Medium"
+                        if arousal <= 3:
+                            label = "Low"
+                        elif arousal >= 7:
+                            label = "High"
+                        else:
+                            label = "Medium"
 
-                            new_sample["Arousal"] = label
-                            print(new_sample)
+                        new_sample["Arousal"] = label
+                        print(new_sample)
 
-                            sync.data_available_event.clear()
+                        sync.data_available_event.clear()
+                        sync.clear_data.value = 1
 
                         with modelTrainer.lock:
                             modelTrainer.new_sample_queue.put(new_sample)
                             modelTrainer.sample_available_event.set()
-                            # print("Sending new data to Model Trainer Queue.")
+                            print("Sending new data to Model Trainer Queue.")
 
                 if isModelRetrained:
                     with self.model_lock:
@@ -162,12 +160,10 @@ class Manager(multiprocessing.Process):
                 if sync.buffer_queue.qsize() > 0:
                     sync.sendBuffer.value = 0
                     with sync.lock:
-                        # print("Manager has lock.")
                         process.data = sync.buffer_queue.get()
                         i += 1
                         features = process.processData()
                         process.features = features - self.baseline
-                        # print(process.features)
                         if previous_df is not None and features is not None:
                             if not np.allclose(
                                 features.values, previous_df.values, atol=1e-3
