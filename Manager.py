@@ -125,6 +125,7 @@ class Manager(multiprocessing.Process):
 
                         # print(data_to_train)
                         print("Getting Training Data from Sync Queue.")
+
                         new_sample = process.getOpenSignals(data_to_train, process.info)
 
                         arousal = int(sync.arousal_queue.get())

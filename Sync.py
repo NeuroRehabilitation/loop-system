@@ -270,17 +270,33 @@ class Sync(multiprocessing.Process):
                     if "Ratings" in stream_name:
                         self.getPsychoPyData(data, stream_name)
                         with self.train_lock:
-                            self.data_train_queue.put(self.data_to_train)
+                            buffer_len = [
+                                len(value)
+                                for value in self.data_to_train["OpenSignals"].values()
+                            ]
+                            cropped_data = {"OpenSignals": {}}
+                            if all(
+                                i > self.information["OpenSignals"]["Max Size"]
+                                for i in buffer_len
+                            ):
+                                for key in self.data_to_train["OpenSignals"].keys():
+                                    cropped_data["OpenSignals"][key] = deque(
+                                        self.data_to_train["OpenSignals"][key],
+                                        maxlen=self.information["OpenSignals"][
+                                            "Max Size"
+                                        ],
+                                    )
+                                self.data_train_queue.put(cropped_data)
+                            else:
+                                self.data_train_queue.put(self.data_to_train)
                             print("Putting Training data in Manager Queue.")
-                            print(
-                                f"Len Training Data = {len(self.data_to_train['OpenSignals']['Timestamps'])}"
-                            )
                             self.data_available_event.set()
                     else:
                         self.getBuffers(data, stream_name)
                         if bool(self.clear_data.value):
                             self.clearDict(stream_name)
                             self.clear_data.value = 0
+                            print(self.data_to_train)
 
             if not self.isFirstBuffer and self.sendBuffer.value == 1:
                 with self.lock:
