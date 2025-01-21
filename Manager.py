@@ -123,7 +123,7 @@ class Manager(multiprocessing.Process):
                         #     f'Len =  {len(data_to_train["OpenSignals"]["Timestamps"])}'
                         # )
 
-                        # print(data_to_train)
+                        print(data_to_train)
                         print("Getting Training Data from Sync Queue.")
 
                         new_sample = process.getOpenSignals(data_to_train, process.info)
@@ -131,7 +131,7 @@ class Manager(multiprocessing.Process):
 
                         X = np.array(new_sample)
                         predicted_label = self.model.predict(X)[0]
-                        # print(f"Predicted Label = {predicted_label}")
+                        print(f"Predicted Label = {predicted_label}")
 
                         arousal = int(sync.arousal_queue.get())
 
@@ -143,7 +143,7 @@ class Manager(multiprocessing.Process):
                             true_label = "Medium"
 
                         new_sample["Arousal"] = true_label
-                        # print(new_sample)
+                        print(new_sample)
 
                         sync.data_available_event.clear()
                         sync.clear_data.value = 1
