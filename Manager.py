@@ -123,7 +123,7 @@ class Manager(multiprocessing.Process):
                         #     f'Len =  {len(data_to_train["OpenSignals"]["Timestamps"])}'
                         # )
 
-                        print(data_to_train)
+                        # print(data_to_train)
                         print("Getting Training Data from Sync Queue.")
 
                         new_sample = process.getOpenSignals(data_to_train, process.info)
@@ -164,6 +164,15 @@ class Manager(multiprocessing.Process):
                             # print(self.model)
                             print("Updating retrained model.")
                             modelTrainer.model_retrained_event.clear()
+                            try:
+                                joblib.dump(
+                                    voting_clf,
+                                    f"{path}/model_v{self.model_version}.pkl",
+                                )
+                                print(f"Model saved successfully to {path}")
+                            except Exception as e:
+                                print(f"Error saving the model: {e}")
+                                pass
 
                 # If there is data in the buffer queue from Sync, send to Process.
                 if sync.buffer_queue.qsize() > 0:
