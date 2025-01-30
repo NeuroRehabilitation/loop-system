@@ -11,6 +11,10 @@ from Process import *
 warnings.filterwarnings("ignore")
 
 
+def log_with_line_number(message):
+    print(f"[Line {sys._getframe(1).f_lineno}] {message}")
+
+
 class Manager(multiprocessing.Process):
     def __init__(self):
         self.outlet_stream = None
@@ -44,7 +48,7 @@ class Manager(multiprocessing.Process):
                         writer = csv.writer(f)
                         header = ["Variable", "Value"]
                         writer.writerow(header)
-                    print("Output file created successfully.")
+                    log_with_line_number("Output file created successfully.")
                 except Exception as e:
                     print(f"An error occurred: {e}.")
                 try:
@@ -52,10 +56,10 @@ class Manager(multiprocessing.Process):
                         path + "\\full_dataframe.csv", sep=";", index_col=False
                     )
                     self.training_df = self.training_df.drop("Unnamed: 0", axis=1)
-                    print(self.training_df)
-                    print("Training Dataframe loaded successfully.\n")
+                    log_with_line_number(self.training_df)
+                    log_with_line_number("Training Dataframe loaded successfully.\n")
                 except Exception as e:
-                    print(f"Error loading training dataframe: {e}.")
+                    log_with_line_number(f"Error loading training dataframe: {e}.")
                 try:
                     self.baseline = pd.read_csv(
                         path + "\\Baseline\\df_baseline.csv",
@@ -63,16 +67,16 @@ class Manager(multiprocessing.Process):
                         index_col=False,
                     )
                     self.baseline = self.baseline.drop("Unnamed: 0", axis=1)
-                    print("Baseline Dataframe loaded successfully.\n")
-                    print(self.baseline)
+                    log_with_line_number("Baseline Dataframe loaded successfully.\n")
+                    log_with_line_number(self.baseline)
                 except Exception as e:
-                    print(f"Error loading baseline dataframe: {e}.")
+                    log_with_line_number(f"Error loading baseline dataframe: {e}.")
                 try:
                     self.model = process.loadModel(path)
                 except Exception as e:
-                    print(f"Error loading model: {e}.")
+                    log_with_line_number(f"Error loading model: {e}.")
         else:
-            print("No participant ID provided. Exiting...")
+            log_with_line_number("No participant ID provided. Exiting...")
             sys.exit(1)
 
         input("Press Enter to start acquisition...")
@@ -84,7 +88,7 @@ class Manager(multiprocessing.Process):
         modelTrainer.startAcquisition.value = 1
         sync.sendBuffer.value = 1
 
-        print("Acquisition Started!")
+        log_with_line_number("Acquisition Started!")
 
         i = 0
         previous_df = None
@@ -108,7 +112,9 @@ class Manager(multiprocessing.Process):
             )
             data_sender.start()
             with modelTrainer.lock:
-                print("Sending Initial Model and Training Dataframe to Model Trainer.")
+                log_with_line_number(
+                    "Sending Initial Model and Training Dataframe to Model Trainer."
+                )
                 modelTrainer.model_queue.put((self.model, self.training_df))
 
             # While it is acquiring data
@@ -124,14 +130,14 @@ class Manager(multiprocessing.Process):
                         # )
 
                         # print(data_to_train)
-                        print("Getting Training Data from Sync Queue.")
+                        log_with_line_number("Getting Training Data from Sync Queue.")
 
                         new_sample = process.getOpenSignals(data_to_train, process.info)
                         new_sample -= self.baseline
 
                         X = np.array(new_sample)
                         predicted_label = self.model.predict(X)[0]
-                        print(f"Predicted Label = {predicted_label}")
+                        log_with_line_number(f"Predicted Label = {predicted_label}")
 
                         arousal = int(sync.arousal_queue.get())
 
@@ -143,7 +149,7 @@ class Manager(multiprocessing.Process):
                             true_label = "Medium"
 
                         new_sample["Arousal"] = true_label
-                        print(new_sample)
+                        log_with_line_number(new_sample)
 
                         sync.data_available_event.clear()
                         sync.clear_data.value = 1
@@ -151,9 +157,11 @@ class Manager(multiprocessing.Process):
                             with modelTrainer.lock:
                                 modelTrainer.new_sample_queue.put(new_sample)
                                 modelTrainer.sample_available_event.set()
-                                print("Sending new data to Model Trainer Queue.")
+                                log_with_line_number(
+                                    "Sending new data to Model Trainer Queue."
+                                )
                         else:
-                            print("No need to retrain model!")
+                            log_with_line_number("No need to retrain model!")
                             continue
 
                 if isModelRetrained:
@@ -162,17 +170,8 @@ class Manager(multiprocessing.Process):
                             self.model = modelTrainer.model_queue.get()
                             self.model_version += 1
                             # print(self.model)
-                            print("Updating retrained model.")
+                            log_with_line_number("Updating retrained model.")
                             modelTrainer.model_retrained_event.clear()
-                            try:
-                                joblib.dump(
-                                    voting_clf,
-                                    f"{path}/model_v{self.model_version}.pkl",
-                                )
-                                print(f"Model saved successfully to {path}")
-                            except Exception as e:
-                                print(f"Error saving the model: {e}")
-                                pass
 
                 # If there is data in the buffer queue from Sync, send to Process.
                 if sync.buffer_queue.qsize() > 0:
@@ -193,7 +192,7 @@ class Manager(multiprocessing.Process):
                                     self.data_queue.put(
                                         [predicted_sample[0], str(probability)]
                                     )
-                                    print(
+                                    log_with_line_number(
                                         f"Prediction = {predicted_sample[0]}, Probability = {probability}, Model v{self.model_version}."
                                     )
 
@@ -203,17 +202,26 @@ class Manager(multiprocessing.Process):
         except Exception as e:
             print(f"ola {e}")
             pass
-        # finally:
-        #     # for i in range(len(br)):
-        #     #     writer.writerow([markers[i], br[i]])
-        #     f.close()
-        #     print("File Closed")
-        #     sync.terminate()
-        #     sync.join()
-        #     modelTrainer.terminate()
-        #     modelTrainer.join()
-        #     data_sender.terminate()
-        #     data_sender.join()
+        finally:
+            try:
+                joblib.dump(
+                    self.model,
+                    f"{path}/model_v{self.model_version}.pkl",
+                )
+                print(f"Model saved successfully to {path}")
+            except Exception as e:
+                print(f"Error saving the model: {e}")
+                pass
+            #     # for i in range(len(br)):
+            #     #     writer.writerow([markers[i], br[i]])
+            f.close()
+            print("File Closed")
+            sync.terminate()
+            sync.join()
+            modelTrainer.terminate()
+            modelTrainer.join()
+            data_sender.terminate()
+            data_sender.join()
 
 
 if __name__ == "__main__":
