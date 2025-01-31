@@ -10,9 +10,19 @@ from Process import *
 
 warnings.filterwarnings("ignore")
 
+import builtins
 
-def log_with_line_number(message):
-    print(f"[Line {sys._getframe(1).f_lineno}] {message}")
+original_print = builtins.print
+counter = 0
+
+
+def custom_print(*args, **kwargs):
+    global counter
+    counter += 1
+    original_print(f"[{counter}]", *args, **kwargs)
+
+
+builtins.print = custom_print
 
 
 class Manager(multiprocessing.Process):
@@ -48,7 +58,7 @@ class Manager(multiprocessing.Process):
                         writer = csv.writer(f)
                         header = ["Variable", "Value"]
                         writer.writerow(header)
-                    log_with_line_number("Output file created successfully.")
+                    print("Output file created successfully.")
                 except Exception as e:
                     print(f"An error occurred: {e}.")
                 try:
@@ -56,10 +66,10 @@ class Manager(multiprocessing.Process):
                         path + "\\full_dataframe.csv", sep=";", index_col=False
                     )
                     self.training_df = self.training_df.drop("Unnamed: 0", axis=1)
-                    log_with_line_number(self.training_df)
-                    log_with_line_number("Training Dataframe loaded successfully.\n")
+                    print(self.training_df)
+                    print("Training Dataframe loaded successfully.\n")
                 except Exception as e:
-                    log_with_line_number(f"Error loading training dataframe: {e}.")
+                    print(f"Error loading training dataframe: {e}.")
                 try:
                     self.baseline = pd.read_csv(
                         path + "\\Baseline\\df_baseline.csv",
@@ -67,16 +77,16 @@ class Manager(multiprocessing.Process):
                         index_col=False,
                     )
                     self.baseline = self.baseline.drop("Unnamed: 0", axis=1)
-                    log_with_line_number("Baseline Dataframe loaded successfully.\n")
-                    log_with_line_number(self.baseline)
+                    print("Baseline Dataframe loaded successfully.\n")
+                    print(self.baseline)
                 except Exception as e:
-                    log_with_line_number(f"Error loading baseline dataframe: {e}.")
+                    print(f"Error loading baseline dataframe: {e}.")
                 try:
                     self.model = process.loadModel(path)
                 except Exception as e:
-                    log_with_line_number(f"Error loading model: {e}.")
+                    print(f"Error loading model: {e}.")
         else:
-            log_with_line_number("No participant ID provided. Exiting...")
+            print("No participant ID provided. Exiting...")
             sys.exit(1)
 
         input("Press Enter to start acquisition...")
@@ -88,7 +98,7 @@ class Manager(multiprocessing.Process):
         modelTrainer.startAcquisition.value = 1
         sync.sendBuffer.value = 1
 
-        log_with_line_number("Acquisition Started!")
+        print("Acquisition Started!")
 
         i = 0
         previous_df = None
@@ -112,9 +122,7 @@ class Manager(multiprocessing.Process):
             )
             data_sender.start()
             with modelTrainer.lock:
-                log_with_line_number(
-                    "Sending Initial Model and Training Dataframe to Model Trainer."
-                )
+                print("Sending Initial Model and Training Dataframe to Model Trainer.")
                 modelTrainer.model_queue.put((self.model, self.training_df))
 
             # While it is acquiring data
@@ -130,14 +138,14 @@ class Manager(multiprocessing.Process):
                         # )
 
                         # print(data_to_train)
-                        log_with_line_number("Getting Training Data from Sync Queue.")
+                        print("Getting Training Data from Sync Queue.")
 
                         new_sample = process.getOpenSignals(data_to_train, process.info)
                         new_sample -= self.baseline
 
                         X = np.array(new_sample)
                         predicted_label = self.model.predict(X)[0]
-                        log_with_line_number(f"Predicted Label = {predicted_label}")
+                        print(f"Predicted Label = {predicted_label}")
 
                         arousal = int(sync.arousal_queue.get())
 
@@ -149,7 +157,7 @@ class Manager(multiprocessing.Process):
                             true_label = "Medium"
 
                         new_sample["Arousal"] = true_label
-                        log_with_line_number(new_sample)
+                        print(new_sample)
 
                         sync.data_available_event.clear()
                         sync.clear_data.value = 1
@@ -157,11 +165,9 @@ class Manager(multiprocessing.Process):
                             with modelTrainer.lock:
                                 modelTrainer.new_sample_queue.put(new_sample)
                                 modelTrainer.sample_available_event.set()
-                                log_with_line_number(
-                                    "Sending new data to Model Trainer Queue."
-                                )
+                                print("Sending new data to Model Trainer Queue.")
                         else:
-                            log_with_line_number("No need to retrain model!")
+                            print("No need to retrain model!")
                             continue
 
                 if isModelRetrained:
@@ -170,7 +176,7 @@ class Manager(multiprocessing.Process):
                             self.model = modelTrainer.model_queue.get()
                             self.model_version += 1
                             # print(self.model)
-                            log_with_line_number("Updating retrained model.")
+                            print("Updating retrained model.")
                             modelTrainer.model_retrained_event.clear()
 
                 # If there is data in the buffer queue from Sync, send to Process.
@@ -192,7 +198,7 @@ class Manager(multiprocessing.Process):
                                     self.data_queue.put(
                                         [predicted_sample[0], str(probability)]
                                     )
-                                    log_with_line_number(
+                                    print(
                                         f"Prediction = {predicted_sample[0]}, Probability = {probability}, Model v{self.model_version}."
                                     )
 
