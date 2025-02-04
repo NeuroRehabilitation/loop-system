@@ -1,10 +1,5 @@
 import csv
-import multiprocessing
 import os.path
-import sys
-import time
-from io import StringIO
-from DataSender import *
 from ModelTrainer import *
 from Process import *
 
@@ -25,6 +20,22 @@ def custom_print(*args, **kwargs):
 builtins.print = custom_print
 
 
+class TeeLogger:
+    """A logger that writes output to both console and a file."""
+
+    def __init__(self, file):
+        self.terminal = sys.stdout  # Save original stdout
+        self.log = file  # Log file
+
+    def write(self, message):
+        self.terminal.write(message)  # Print to console
+        self.log.write(message)  # Write to file
+
+    def flush(self):  # Needed for compatibility
+        self.terminal.flush()
+        self.log.flush()
+
+
 class Manager(multiprocessing.Process):
     def __init__(self):
         self.outlet_stream = None
@@ -38,6 +49,7 @@ class Manager(multiprocessing.Process):
 
     def run(self):
         """ """
+
         # Instantiate object from class Sync and Processing
         sync = Sync(buffer_window=60)
         process = Processing()
@@ -91,6 +103,14 @@ class Manager(multiprocessing.Process):
 
         input("Press Enter to start acquisition...")
 
+        log_folder = os.path.join("Study3/Console_Logs", f"user_{participant}")
+        os.makedirs(log_folder, exist_ok=True)  # Ensure directory exists
+        log_file_path = os.path.join(log_folder, "output.txt")
+
+        log_file = open(log_file_path, "w")
+        sys.stdout = TeeLogger(log_file)
+        sys.stderr = TeeLogger(log_file)
+
         # Start process Sync and put flag startAcquisition as True
         sync.start()
         modelTrainer.start()
@@ -102,9 +122,6 @@ class Manager(multiprocessing.Process):
 
         i = 0
         previous_df = None
-
-        br, markers = [], []
-        video = ""
 
         # Get streams information
         process.info = sync.info_queue.get()
@@ -218,10 +235,11 @@ class Manager(multiprocessing.Process):
             except Exception as e:
                 print(f"Error saving the model: {e}")
                 pass
-            #     # for i in range(len(br)):
-            #     #     writer.writerow([markers[i], br[i]])
-            f.close()
-            print("File Closed")
+
+            sys.stdout = sys.__stdout__
+            sys.stderr = sys.__stderr__
+            log_file.close()
+            print(f"Log saved in: {log_file_path}")
             sync.terminate()
             sync.join()
             modelTrainer.terminate()

@@ -267,6 +267,9 @@ class Sync(multiprocessing.Process):
                 if streams_receiver.data_queue.qsize() > 0:
                     stream_name, data = streams_receiver.data_queue.get()
 
+                    if "Markers" in stream_name:
+                        if data[0][0] == "end":
+                            self.startAcquisition.value = 0
                     if "Ratings" in stream_name:
                         self.getPsychoPyData(data, stream_name)
                         with self.train_lock:
