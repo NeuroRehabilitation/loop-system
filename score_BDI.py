@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Load Excel file
-df = pd.read_excel(r"C:\Users\Rodrigo\Downloads\Questionário Online(1-1).xlsx")
+df = pd.read_excel(r"C:\Users\Rodrigo\Downloads\Questionário Online(1-7).xlsx")
 
 # Define scoring system
 scoring = {
@@ -67,7 +67,7 @@ scoring = {
     },
     "12": {
         "Não me sinto mais inquieto.": 0,
-        "Sinto - me mais inquieto que o habitual.": 1,
+        "Sinto-me mais inquieto que o habitual.": 1,
         "Estou tão agitado que é difícil parar quieto.": 2,
         "Estou tão agitado que tenho de me manter a fazer algo.": 3,
     },
