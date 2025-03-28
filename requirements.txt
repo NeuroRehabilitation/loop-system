@@ -16,7 +16,7 @@ biosppy==2.2.3
 black==25.1.0
 bleach==6.2.0
 blinker==1.9.0
-bokeh==3.7.1
+bokeh==3.7.2
 brotlipy==0.7.0
 certifi @ file:///C:/b/abs_ac29jvt43w/croot/certifi_1665076682579/work/certifi
 cffi @ file:///C:/Windows/Temp/abs_6808y9x40v/croots/recipe/cffi_1659598653989/work
