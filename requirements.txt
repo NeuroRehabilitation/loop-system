@@ -90,7 +90,7 @@ pickleshare @ file:///tmp/build/80754af9/pickleshare_1606932040724/work
 Pillow==11.2.1
 pkginfo @ file:///tmp/build/80754af9/pkginfo_1643162084911/work
 
-platformdirs==4.3.7
+platformdirs==4.3.8
 prometheus-client==0.21.1
 prompt-toolkit==3.0.51
 psutil==7.0.0
