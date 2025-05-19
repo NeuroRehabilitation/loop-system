@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Load Excel file
-df = pd.read_excel(r"C:\Users\Rodrigo\Downloads\Questionário Online(1-7).xlsx")
+df = pd.read_excel(r"C:\Users\Rodrigo\Downloads\Questionário Online(1-41).xlsx")
 
 # Define scoring system
 scoring = {
