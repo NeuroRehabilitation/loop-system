@@ -1,35 +1,40 @@
-import time
+import os.path
+import pickle
+
+import joblib
 
 from Signals_Processing import *
-import pickle
-import pylsl
 
 
 class Processing:
     def __init__(self):
+        self.features = None
         self.info = []
         self.data = {}
 
-    def getOpenSignals(self):
+    @staticmethod
+    def getOpenSignals(data: dict, info: list):
         """
 
         :return:
         :rtype:
         """
-        for stream in self.info:
+
+        dataframe, HRV_Dataframe, EDA_Dataframe, RESP_Dataframe = None, None, None, None
+
+        for stream in info:
             if stream["Name"] == "OpenSignals":
                 name = stream["Name"]
                 fs = stream["Sampling Rate"]
-                for key in self.data[name].keys():
-                    # if key.startswith("ECG"):
-                    #     HRV_Dataframe = Process_HRV(self.data[name][key], fs, 16)
-                    # if key.startswith("EDA"):
-                    #     EDA_Dataframe = Process_EDA(self.data[name][key], fs, 16)
+                for key in data[name].keys():
+                    if key.startswith("ECG"):
+                        HRV_Dataframe = Process_HRV(data[name][key], fs, 16)
+                    if key.startswith("EDA"):
+                        EDA_Dataframe = Process_EDA(data[name][key], fs, 16)
                     if key.startswith("RESP"):
-                        RESP_Dataframe = Process_RESP(self.data[name][key], fs, 16)
+                        RESP_Dataframe = Process_RESP(data[name][key], fs, 16)
 
-                # dataframe = (HRV_Dataframe.join(EDA_Dataframe)).join(RESP_Dataframe)
-                dataframe = RESP_Dataframe["AVG"]
+                dataframe = (HRV_Dataframe.join(EDA_Dataframe)).join(RESP_Dataframe)
 
         return dataframe
 
@@ -68,10 +73,11 @@ class Processing:
         :return:
         :rtype:
         """
-        # print("Process")
+
         self.features = pd.DataFrame()
+        dataframe = None
         if "OpenSignals" in self.data.keys():
-            dataframe = self.getOpenSignals()
+            dataframe = self.getOpenSignals(self.data, self.info)
         # if "openvibeSignal" in self.data.keys():
         #     EEG_dataframe = self.getOpenvibe()
 
@@ -80,41 +86,38 @@ class Processing:
 
         return self.features
 
-    def loadModels(self, path: str, target=""):
-        try:
-            imp = pickle.load(open(path + "\\imp" + target + ".pkl", "rb"))
-        except Exception as e:
-            print(e)
-            print("Error on loading Imputer file!")
-        try:
-            scaler = pickle.load(open(path + "\\scaler" + target + ".pkl", "rb"))
-        except Exception as e:
-            print(e)
-            print("Error on loading Scaler file!")
-        try:
-            rfe = pickle.load(open(path + "\\rfe" + target + ".pkl", "rb"))
-        except Exception as e:
-            print(e)
-            print("Error on loading RFE file!")
-        try:
-            model = pickle.load(open(path + "\\model" + target + ".pkl", "rb"))
-        except Exception as e:
-            print(e)
-            print("Error on loading Model file!")
+    @staticmethod
+    def loadModel(path: str):
 
-        return imp, scaler, rfe, model
+        model_path = os.path.join(path, "model.pkl")
+        model = None
 
-    def predict(self, imp, scaler, rfe, model):
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"The directory {path} does not exist.")
+            sys.exit(1)
+        elif not os.path.isfile(model_path):
+            raise FileNotFoundError(f"The file {model_path} does not exist.")
+            sys.exit(1)
+        else:
+            try:
+                model = joblib.load(model_path)
+                print("Model loaded successfully.\n")
+                print(model)
+            except Exception as e:
+                print(e)
+                print("Error on loading Model file!")
+
+        return model
+
+    def predict(self, model):
         try:
             X = np.array(self.features)
             if len(X) > 0:
-                X = imp.transform(X)
-                X = scaler.transform(X)
-                X = rfe.transform(X)
-
                 prediction = model.predict(X)
+                index = list(model.classes_).index(prediction[0])
+                probability = model.predict_proba(X)[0][index]
 
-                return prediction
+                return prediction, probability
             else:
                 print("X has no data!")
         except Exception as e:

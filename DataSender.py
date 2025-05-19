@@ -39,10 +39,10 @@ class DataSender(multiprocessing.Process):
             self.source_id,
         )
         info_channels = self.stream_info.desc().append_child("channels")
-        info_channels.append_child("channel").append_child_value("label", "BR")
+        info_channels.append_child("channel").append_child_value("label", "Stress")
         self.stream_outlet = StreamOutlet(self.stream_info)
 
         while True:
-            if self.data_queue.qsize() > 0:
+            if not self.data_queue.empty():
                 data = self.data_queue.get()
-                self.stream_outlet.push_sample([data])
+                self.stream_outlet.push_chunk(data)

@@ -1,7 +1,9 @@
-from ReceiveStreams import *
+import multiprocessing
 import time
 from collections import deque
-import numpy as np
+
+
+from ReceiveStreams import *
 
 
 class Sync(multiprocessing.Process):
@@ -19,12 +21,10 @@ class Sync(multiprocessing.Process):
         (
             self.data_queue,
             self.buffer_queue,
-            self.markers_queue,
-            self.valence_queue,
             self.arousal_queue,
+            self.data_train_queue,
             self.info_queue,
         ) = (
-            multiprocessing.Queue(),
             multiprocessing.Queue(),
             multiprocessing.Queue(),
             multiprocessing.Queue(),
@@ -36,7 +36,8 @@ class Sync(multiprocessing.Process):
         self.streams_info = []
 
         # Dictionaries to organize the data of all the streams
-        self.synced_dict, self.information, self.timestamps = (
+        self.synced_dict, self.data_to_train, self.information, self.timestamps = (
+            {},
             {},
             {},
             {},
@@ -48,9 +49,12 @@ class Sync(multiprocessing.Process):
         # Flag to start the acquisition of data by the Manager.
         self.startAcquisition = multiprocessing.Value("i", 0)
         self.sendBuffer = multiprocessing.Value("i", 0)
+        self.clear_data = multiprocessing.Value("i", 0)
 
         # Locks of the system
-        self.lock = multiprocessing.Lock()
+        self.lock, self.train_lock = multiprocessing.Lock(), multiprocessing.Lock()
+
+        self.data_available_event = multiprocessing.Event()
 
         # Number of full buffers from all the streams
         self.n_full_buffers = 0
@@ -101,6 +105,18 @@ class Sync(multiprocessing.Process):
 
         return dict
 
+    def clearDict(self, stream_name: str):
+        # print("Clearing Data.")
+        for key in self.data_to_train[stream_name].keys():
+            self.data_to_train[stream_name][key].clear()
+
+    def fill_TrainingData(self, data: tuple, stream_name: str) -> None:
+
+        self.data_to_train[stream_name]["Timestamps"].append(data[1])
+        for i, key in enumerate(self.data_to_train[stream_name].keys()):
+            if key != "Timestamps":
+                self.data_to_train[stream_name][key].append(data[0][i - 1])
+
     def fillData(self, data: tuple, stream_name: str) -> None:
         """Function to fill the dictionary synced_dict with the data from each stream
 
@@ -109,8 +125,8 @@ class Sync(multiprocessing.Process):
         :param stream_name: name of the stream
         :type stream_name: str
         """
-
         self.synced_dict[stream_name]["Timestamps"].append(data[1])
+
         for i, key in enumerate(self.synced_dict[stream_name].keys()):
             if key != "Timestamps":
                 self.synced_dict[stream_name][key].append(data[0][i - 1])
@@ -168,7 +184,7 @@ class Sync(multiprocessing.Process):
                 else:
                     if all(i >= self.first_timestamp for i in self.timestamps.values()):
                         self.isSync = True
-                        print("Streams are Synced.")
+                        print("\nStreams are Synced.")
 
     def getBuffers(self, data: tuple, stream_name: str) -> None:
         """
@@ -181,23 +197,25 @@ class Sync(multiprocessing.Process):
         """
         # In case of the data being synchronized
         if self.isSync:
-            with self.lock:
-                # print("Get Buffer")
-                if "PsychoPy" not in stream_name:
-                    # If buffers are not full keep checking the size of the buffers
-                    self.checkBufferSize(
-                        self.information[stream_name]["Max Size"],
-                        stream_name,
-                    )
-                    # In case it is the first buffer of data
-                    if not self.information[stream_name]["Full Buffer"]:
-                        # Fills the first buffer of data with data
-                        self.fillData(data, stream_name)
-                    else:
-                        # If it is not the first buffer (buffers are with max size)
-                        # Start sliding window and put buffers on the Queue to send to process
-                        self.slidingWindow(stream_name)
-                        self.fillData(data, stream_name)
+            # print("Get Buffer")
+            if "PsychoPy" not in stream_name:
+                # If buffers are not full keep checking the size of the buffers
+                self.checkBufferSize(
+                    self.information[stream_name]["Max Size"],
+                    stream_name,
+                )
+
+                # In case it is the first buffer of data
+                if not self.information[stream_name]["Full Buffer"]:
+                    # Fills the first buffer of data with data
+                    self.fillData(data, stream_name)
+                    self.fill_TrainingData(data, stream_name)
+                else:
+                    # If it is not the first buffer (buffers are with max size)
+                    # Start sliding window and put buffers on the Queue to send to process
+                    self.slidingWindow(stream_name)
+                    self.fillData(data, stream_name)
+                    self.fill_TrainingData(data, stream_name)
 
     def getPsychoPyData(self, data: tuple, stream_name: str) -> None:
         """
@@ -206,13 +224,10 @@ class Sync(multiprocessing.Process):
         :param stream_name:
         :type stream_name:
         """
-        if "Markers" in stream_name:
-            self.markers_queue.put(data[0])
-        else:
+        if "Ratings" in stream_name:
             if "Arousal" in data[0][0]:
                 self.arousal_queue.put(data[0][1])
-            else:
-                self.valence_queue.put(data[0][1])
+                # print(f"Arousal = {data[0][1]}")
 
     def run(self):
         """ """
@@ -227,14 +242,19 @@ class Sync(multiprocessing.Process):
         for stream in self.streams_info:
             if "PsychoPy" not in stream["Name"]:
                 self.synced_dict[stream["Name"]] = self.createDict(stream)
+                self.data_to_train[stream["Name"]] = self.createDict(stream)
                 self.information[stream["Name"]] = stream
                 self.information[stream["Name"]]["Max Size"] = self.getBufferMaxSize(
                     stream["Name"]
                 )
                 self.information[stream["Name"]]["Full Buffer"] = False
 
+        start_time = time.time()
         # Loop to receive the data - start acquisition is true
         while bool(self.startAcquisition.value):
+            if self.isFirstBuffer:
+                elapsed = time.time() - start_time
+                print(f"Elapsed Time = {elapsed:.2f} seconds.")
             # Synchronize the data
             if not self.isSync:
                 if streams_receiver.data_queue.qsize() > 0:
@@ -246,13 +266,45 @@ class Sync(multiprocessing.Process):
             if self.isSync:
                 if streams_receiver.data_queue.qsize() > 0:
                     stream_name, data = streams_receiver.data_queue.get()
-                    if "PsychoPy" in stream_name:
+
+                    if "Markers" in stream_name:
+                        if data[0][0] == "end":
+                            self.startAcquisition.value = 0
+                    if "Ratings" in stream_name:
                         self.getPsychoPyData(data, stream_name)
+                        with self.train_lock:
+                            buffer_len = [
+                                len(value)
+                                for value in self.data_to_train["OpenSignals"].values()
+                            ]
+                            cropped_data = {"OpenSignals": {}}
+                            if all(
+                                i > self.information["OpenSignals"]["Max Size"]
+                                for i in buffer_len
+                            ):
+                                for key in self.data_to_train["OpenSignals"].keys():
+                                    cropped_data["OpenSignals"][key] = deque(
+                                        self.data_to_train["OpenSignals"][key],
+                                        maxlen=self.information["OpenSignals"][
+                                            "Max Size"
+                                        ],
+                                    )
+                                self.data_train_queue.put(cropped_data)
+                            else:
+                                self.data_train_queue.put(self.data_to_train)
+                            print("Putting Training data in Manager Queue.")
+                            self.data_available_event.set()
                     else:
                         self.getBuffers(data, stream_name)
+                        if bool(self.clear_data.value):
+                            self.clearDict(stream_name)
+                            self.clear_data.value = 0
+                            # print(self.data_to_train)
+
             if not self.isFirstBuffer and self.sendBuffer.value == 1:
                 with self.lock:
                     self.buffer_queue.put(self.synced_dict)
+                    # print(f"Queue size = {self.buffer_queue.qsize()}")
 
         # Stop all running child processes
         streams_receiver.stopChildProcesses()

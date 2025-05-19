@@ -13,6 +13,9 @@ __pycache__/
 /Training Models/
 /Breathing Rate/
 /Logs/
+/Models/
+/user_models
+/Study3/
 *.csv
 *.xlsx
 
@@ -113,6 +116,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
+.idea
 .env
 .venv
 env/
