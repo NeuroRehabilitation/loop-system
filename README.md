@@ -11,22 +11,40 @@ The system uses parallel processing, therefore each class is a Process in Python
 
 ```mermaid
 flowchart LR
-A((LSL Streams))
-B((OpenSignals))
-C((Openvibe))
-D((PsychoPy))
-A --> B & C & D
-E((Sync Streams <br/> with timestamps ))
-B & C & D --> E
-F((Buffer <br/> 40s of data))
-E --> |Continuously <br/> Update Data| F
-G((Manager))
-F --> |LOCK <br/> QUEUE| G
-H((Buffers <br/> Processing))
-I((Prediction))
-G --> H
-H --> I
-I --> |RELEASE <br/> QUEUE| G
+    %% =============================
+    %% Nodes
+    %% =============================
+
+    Stream(["**Stream**<br/>(multiprocessing.Process)<br/><br/>Class that initializes all available LSL streams<br/>Pulls samples from each available stream and puts the data in a Queue."])
+    Receive(["**Receive Streams**<br/>(multiprocessing.Process)<br/><br/>Instantiates Stream objects for each available stream<br/>Starts each stream process, gets data and info from Queue, and sends to next process."])
+    Sync(["**Sync**<br/>(multiprocessing.Process)<br/><br/>Synchronizes data using timestamps<br/>Organizes into dictionaries for each LSL stream.<br/><br/>**Buffer Data**<br/>Continuously updates buffer, sends to Manager when full.<br/><br/>**Data to Train**<br/>When self-report is submitted, sends training data to Queue."])
+    Manager(["**Manager**<br/>(multiprocessing.Process)<br/><br/>Controls flow between processes.<br/>Receives buffer and training data from Sync.<br/>Extracts features, predicts stress level.<br/>Sends training data to Model Trainer.<br/>Updates model after retraining.<br/>Sends predictions to FOF using LSL."])
+    Processing(["**Processing**<br/><br/>Static class with functions to process and obtain features.<br/>Predicts stress level from model."])
+    Trainer(["**Model Trainer**<br/>(multiprocessing.Process)<br/><br/>Performs online retraining of models.<br/>If true label differs from prediction, retrains model and updates Manager."])
+    Output(["**Stress Prediction**<br/>(Low, Medium, High)<br/>Prediction Probability<br/>Model Version"])
+
+    %% =============================
+    %% Connections
+    %% =============================
+
+    Stream -->|"Data Queue"| Receive
+    Receive -->|"Data Queue<br/>Info Queue"| Sync
+    Sync -->|"Buffer Data Queue<br/>Data Train Queue"| Manager
+    Sync -.->|"🔒 Sync Lock"| Manager
+    Manager -->|"Features from Buffer Data<br/>Features from Training Data"| Processing
+    Manager -->|"Train Lock 🔒"| Trainer
+    Trainer -->|"Model Trainer Lock 🔒"| Manager
+    Manager --> Output
+
+    %% =============================
+    %% Styling
+    %% =============================
+
+    classDef process fill:#f2f2f2,stroke:#333,stroke-width:1px,color:#000,rx:10,ry:10
+    classDef output fill:#b3e6b3,stroke:#333,stroke-width:1px,color:#000,rx:50,ry:50
+
+    class Stream,Receive,Sync,Manager,Processing,Trainer process
+    class Output output
 ```
 
 ## Here are a brief explanation of the functionality of each class:
