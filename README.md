@@ -2,12 +2,12 @@
 
 ## About
 
-EmoLoop – Online Processing Module
-
-The EmoLoop's online processing module is based on Python's parallel-processing architecture, allowing multiple
-processes to run simultaneously, minimizing delays in data acquisition and processing. It uses Python’s built-in
-multiprocessing module and Process class to distribute tasks across multiple CPU cores. Each core component of the
-software is implemented as a separate parallel process.
+EmoLoop is a closed-loop framework designed to enable dynamic interaction between a user’s emotional state—measured
+through physiological signals—and an adaptive VR environment. The system continuously monitors physiological signals
+such as ECG, EDA, and respiration, synchronizes the data, extracts relevant features, and uses machine learning models
+to predict the user’s emotional or stress state in real time. The framework is built on a modular parallel-processing
+architecture, with each core component implemented as a separate
+process for efficient, low-latency data acquisition and processing.
 
 ## The following chart shows how the system works:
 
