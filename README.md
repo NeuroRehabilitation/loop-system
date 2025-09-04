@@ -1,4 +1,4 @@
-# 🪢 Loop System
+# 🪢 EmoLoop
 
 ## About
 
